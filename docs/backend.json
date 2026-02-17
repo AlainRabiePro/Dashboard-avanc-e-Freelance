@@ -383,9 +383,13 @@
         "type": {
           "type": "string",
           "description": "The category or type of the event.",
-          "items": {
-            "type": "string"
-          }
+          "enum": [
+            "Meeting",
+            "Deadline",
+            "Review",
+            "Break",
+            "Other"
+          ]
         },
         "location": {
           "type": "string",

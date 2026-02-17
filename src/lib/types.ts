@@ -72,9 +72,16 @@ export type ScheduleEvent = {
   userId: string;
   title: string;
   description: string;
-  startDate: string;
-  endDate: string;
+  startDate: string | Date;
+  endDate: string | Date;
   type: 'Meeting' | 'Deadline' | 'Review' | 'Break' | 'Other';
+  location?: string;
+  isAllDay?: boolean;
+  relatedProjectId?: string;
+  relatedTaskId?: string;
+  attendees?: string[];
+  createdAt?: any;
+  updatedAt?: any;
 };
 
 export type InvoiceItem = {
