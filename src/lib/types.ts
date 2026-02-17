@@ -57,6 +57,7 @@ export type Task = {
   status: 'Todo' | 'In Progress' | 'In Review' | 'Done';
   priority: 'Low' | 'Medium' | 'High' | 'Critical';
   dueDate: string;
+  createdAt?: any;
 };
 
 export type ScheduleEvent = {
