@@ -47,6 +47,8 @@ export type Subcontractor = {
   hourlyRate: number;
   status: 'Active' | 'Inactive';
   bio: string;
+  createdAt?: any;
+  updatedAt?: any;
 };
 
 export type Task = {
