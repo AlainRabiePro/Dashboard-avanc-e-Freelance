@@ -13,15 +13,41 @@ import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Search, LogOut, Settings, User } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { placeholderImages } from "@/lib/placeholder-images";
-import { mockUser } from "@/lib/data";
+import { useFirebase } from "@/firebase";
+import { signOut } from "firebase/auth";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
 
 export function DashboardHeader() {
-  const userAvatar = placeholderImages.find((img) => img.id === mockUser.avatar);
-  const userInitials = mockUser.name
-    .split(" ")
+  const { user, auth } = useFirebase();
+  const router = useRouter();
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      toast({
+        title: "Logged Out",
+        description: "You have been successfully logged out.",
+      });
+      router.push('/login');
+    } catch (error) {
+      toast({
+        title: "Logout Failed",
+        description: "An error occurred during logout.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const userInitials = user?.displayName
+    ?.split(" ")
     .map((n) => n[0])
-    .join("");
+    .join("") || user?.email?.charAt(0).toUpperCase() || "U";
+  
+  const userAvatarUrl = user?.photoURL;
+  const userName = user?.displayName || user?.email;
+  const userEmail = user?.email;
 
   return (
     <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm md:px-6">
@@ -43,7 +69,7 @@ export function DashboardHeader() {
         <DropdownMenuTrigger asChild>
           <button className="rounded-full focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
             <Avatar className="h-9 w-9">
-              {userAvatar && <AvatarImage src={userAvatar.imageUrl} alt={mockUser.name} />}
+              {userAvatarUrl && <AvatarImage src={userAvatarUrl} alt={userName || ""} />}
               <AvatarFallback>{userInitials}</AvatarFallback>
             </Avatar>
           </button>
@@ -51,9 +77,9 @@ export function DashboardHeader() {
         <DropdownMenuContent align="end" className="w-56">
           <DropdownMenuLabel>
             <div className="flex flex-col space-y-1">
-              <p className="text-sm font-medium leading-none">{mockUser.name}</p>
+              <p className="text-sm font-medium leading-none">{userName}</p>
               <p className="text-xs leading-none text-muted-foreground">
-                {mockUser.email}
+                {userEmail}
               </p>
             </div>
           </DropdownMenuLabel>
@@ -67,7 +93,7 @@ export function DashboardHeader() {
             <span>Settings</span>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>
+          <DropdownMenuItem onClick={handleLogout}>
             <LogOut className="mr-2 h-4 w-4" />
             <span>Log out</span>
           </DropdownMenuItem>
