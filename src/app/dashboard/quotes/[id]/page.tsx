@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
-import { ArrowLeft, Edit, Printer, Trash2 } from 'lucide-react';
+import { ArrowLeft, Edit, FileDown, Printer, Trash2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
@@ -90,6 +90,7 @@ export default function QuoteDetailsPage() {
             </div>
             <div className="flex items-center gap-2">
                 <Button variant="outline" onClick={() => window.print()}><Printer className="mr-2 h-4 w-4" /> Print</Button>
+                <Button variant="outline"><FileDown className="mr-2 h-4 w-4" /> PDF</Button>
                 <Button asChild><Link href={`/dashboard/quotes/${quote.id}/edit`}><Edit className="mr-2 h-4 w-4" /> Edit</Link></Button>
                 <Button variant="destructive" onClick={() => setShowDeleteDialog(true)}><Trash2 className="mr-2 h-4 w-4" /> Delete</Button>
             </div>
@@ -180,6 +181,7 @@ function QuoteDetailsSkeleton() {
               <Skeleton className="h-4 w-32 mt-2" />
             </div>
             <div className="flex items-center gap-2">
+                <Skeleton className="h-10 w-24" />
                 <Skeleton className="h-10 w-24" />
                 <Skeleton className="h-10 w-24" />
                 <Skeleton className="h-10 w-24" />
