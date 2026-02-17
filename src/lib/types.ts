@@ -18,8 +18,10 @@ export type Project = {
   status: 'Planning' | 'In Progress' | 'Testing' | 'Completed';
   progress: number;
   budget: number;
-  startDate: string;
-  endDate: string;
+  startDate: string | Date;
+  endDate: string | Date;
+  createdAt?: any;
+  updatedAt?: any;
 };
 
 export type Client = {
@@ -105,5 +107,3 @@ export type Quote = {
   description: string;
   items: InvoiceItem[];
 };
-
-
