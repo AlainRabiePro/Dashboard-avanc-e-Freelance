@@ -21,20 +21,21 @@ import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { mockProjects } from "@/lib/data";
 import { generateInvoiceQuoteDescription } from "@/ai/flows/generate-invoice-quote-description";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { useFirebase, addDocumentNonBlocking, updateDocumentNonBlocking, useCollection, useMemoFirebase } from "@/firebase";
 import { collection, doc, serverTimestamp, query, where } from "firebase/firestore";
-import type { Invoice, Client } from "@/lib/types";
+import type { Quote, Client } from "@/lib/types";
 
-const invoiceFormSchema = z.object({
+const quoteFormSchema = z.object({
   client: z.string().min(1, "Client is required."),
-  invoiceNumber: z.string().min(1, "Invoice number is required."),
+  quoteNumber: z.string().min(1, "Quote number is required."),
   issueDate: z.date({ required_error: "Issue date is required." }),
-  dueDate: z.date({ required_error: "Due date is required." }),
-  status: z.enum(['Draft', 'Sent', 'Paid', 'Overdue']),
+  validUntil: z.date({ required_error: "Expiry date is required." }),
+  status: z.enum(['Draft', 'Sent', 'Accepted', 'Rejected']),
   items: z.array(
     z.object({
       description: z.string().min(1, "Description is required."),
@@ -44,17 +45,18 @@ const invoiceFormSchema = z.object({
   ).min(1, "At least one item is required."),
 });
 
-type InvoiceFormValues = z.infer<typeof invoiceFormSchema>;
+type QuoteFormValues = z.infer<typeof quoteFormSchema>;
 
-export function InvoiceForm({ invoice }: { invoice?: Invoice }) {
+export function QuoteForm({ quote }: { quote?: Quote }) {
   const { toast } = useToast();
   const router = useRouter();
   const { firestore, user } = useFirebase();
-  const isEditMode = !!invoice;
+  const isEditMode = !!quote;
   
   const toDate = (date: any): Date => {
-    if (date.toDate) return date.toDate();
-    return new Date(date);
+    if (date?.toDate) return date.toDate();
+    if (date) return new Date(date);
+    return new Date();
   }
 
   const clientsQuery = useMemoFirebase(
@@ -63,15 +65,15 @@ export function InvoiceForm({ invoice }: { invoice?: Invoice }) {
   );
   const { data: clients } = useCollection<Client>(clientsQuery);
 
-  const form = useForm<InvoiceFormValues>({
-    resolver: zodResolver(invoiceFormSchema),
+  const form = useForm<QuoteFormValues>({
+    resolver: zodResolver(quoteFormSchema),
     defaultValues: isEditMode ? {
-        ...invoice,
-        issueDate: toDate(invoice.issueDate),
-        dueDate: toDate(invoice.dueDate),
+        ...quote,
+        issueDate: toDate(quote.issueDate),
+        validUntil: toDate(quote.validUntil),
     } : {
       client: "",
-      invoiceNumber: `INV-${new Date().getFullYear()}-`,
+      quoteNumber: `QT-${new Date().getFullYear()}-`,
       status: 'Draft',
       items: [{ description: "", quantity: 1, unitPrice: 0 }],
     },
@@ -125,12 +127,12 @@ export function InvoiceForm({ invoice }: { invoice?: Invoice }) {
   };
 
 
-  function onSubmit(data: InvoiceFormValues) {
+  function onSubmit(data: QuoteFormValues) {
     if (!user || !firestore) return;
 
     const totalAmount = data.items.reduce((acc, item) => acc + item.quantity * item.unitPrice, 0);
 
-    const invoiceData = {
+    const quoteData = {
       ...data,
       userId: user.uid,
       amount: totalAmount,
@@ -139,22 +141,22 @@ export function InvoiceForm({ invoice }: { invoice?: Invoice }) {
     };
 
     if (isEditMode) {
-      const invoiceRef = doc(firestore, 'invoices', invoice.id);
-      updateDocumentNonBlocking(invoiceRef, invoiceData);
+      const quoteRef = doc(firestore, 'quotes', quote.id);
+      updateDocumentNonBlocking(quoteRef, quoteData);
       toast({
-        title: "Invoice Updated",
-        description: `Invoice ${data.invoiceNumber} has been updated.`,
+        title: "Quote Updated",
+        description: `Quote ${data.quoteNumber} has been updated.`,
       });
     } else {
-      const newInvoiceData = { ...invoiceData, createdAt: serverTimestamp() };
-      const invoicesCol = collection(firestore, 'invoices');
-      addDocumentNonBlocking(invoicesCol, newInvoiceData);
+      const newQuoteData = { ...quoteData, createdAt: serverTimestamp() };
+      const quotesCol = collection(firestore, 'quotes');
+      addDocumentNonBlocking(quotesCol, newQuoteData);
       toast({
-        title: "Invoice Created",
-        description: `Invoice ${data.invoiceNumber} has been created.`,
+        title: "Quote Created",
+        description: `Quote ${data.quoteNumber} has been created.`,
       });
     }
-    router.push('/dashboard/invoices');
+    router.push('/dashboard/quotes');
   }
 
   return (
@@ -185,12 +187,12 @@ export function InvoiceForm({ invoice }: { invoice?: Invoice }) {
           />
           <FormField
             control={form.control}
-            name="invoiceNumber"
+            name="quoteNumber"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Invoice Number</FormLabel>
+                <FormLabel>Quote Number</FormLabel>
                 <FormControl>
-                  <Input placeholder="INV-2024-001" {...field} />
+                  <Input placeholder="QT-2024-001" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -221,10 +223,10 @@ export function InvoiceForm({ invoice }: { invoice?: Invoice }) {
           />
           <FormField
             control={form.control}
-            name="dueDate"
+            name="validUntil"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel>Due Date</FormLabel>
+                <FormLabel>Valid Until</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
                     <FormControl>
@@ -255,7 +257,7 @@ export function InvoiceForm({ invoice }: { invoice?: Invoice }) {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {['Draft', 'Sent', 'Paid', 'Overdue'].map(status => (
+                    {['Draft', 'Sent', 'Accepted', 'Rejected'].map(status => (
                       <SelectItem key={status} value={status}>{status}</SelectItem>
                     ))}
                   </SelectContent>
@@ -286,7 +288,7 @@ export function InvoiceForm({ invoice }: { invoice?: Invoice }) {
                 />
                  <div className="flex gap-2 items-center">
                   <Input 
-                    placeholder="Keyword (e.g., 'web design')" 
+                    placeholder="Keyword (e.g., 'logo design')" 
                     value={keywords[index] || ""}
                     onChange={e => setKeywords(prev => { const next = [...prev]; next[index] = e.target.value; return next; })}
                     className="h-9"
@@ -347,7 +349,7 @@ export function InvoiceForm({ invoice }: { invoice?: Invoice }) {
           </Button>
         </div>
         <div className="flex justify-end">
-          <Button type="submit" disabled={form.formState.isSubmitting}>{isEditMode ? "Update Invoice" : "Create Invoice"}</Button>
+          <Button type="submit" disabled={form.formState.isSubmitting}>{isEditMode ? "Update Quote" : "Create Quote"}</Button>
         </div>
       </form>
     </Form>

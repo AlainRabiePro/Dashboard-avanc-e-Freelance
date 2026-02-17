@@ -25,9 +25,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
-import { useFirebase, addDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase";
-import { collection, doc, serverTimestamp } from "firebase/firestore";
-import type { Project } from "@/lib/types";
+import { useFirebase, addDocumentNonBlocking, updateDocumentNonBlocking, useCollection, useMemoFirebase } from "@/firebase";
+import { collection, doc, serverTimestamp, query, where } from "firebase/firestore";
+import type { Project, Client } from "@/lib/types";
 
 const projectFormSchema = z.object({
   name: z.string().min(1, "Project name is required."),
@@ -53,6 +53,12 @@ export function ProjectForm({ project }: { project?: Project }) {
     if (date.toDate) return date.toDate();
     return new Date(date);
   }
+
+  const clientsQuery = useMemoFirebase(
+    () => user?.uid && firestore ? query(collection(firestore, "clients"), where("userId", "==", user.uid)) : null,
+    [user?.uid, firestore]
+  );
+  const { data: clients } = useCollection<Client>(clientsQuery);
 
   const form = useForm<ProjectFormValues>({
     resolver: zodResolver(projectFormSchema),
@@ -122,9 +128,18 @@ export function ProjectForm({ project }: { project?: Project }) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Client</FormLabel>
-                <FormControl>
-                  <Input placeholder="Client Company Name" {...field} />
-                </FormControl>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a client" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {clients?.map(client => (
+                      <SelectItem key={client.id} value={client.name}>{client.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
