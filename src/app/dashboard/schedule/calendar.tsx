@@ -8,6 +8,13 @@ import { cn } from '@/lib/utils';
 import type { ScheduleEvent } from '@/lib/types';
 import { EventDialog } from './event-dialog';
 
+const toDate = (date: any): Date => {
+  if (date?.toDate) {
+    return date.toDate();
+  }
+  return new Date(date);
+};
+
 const EventBadge = ({ event, onClick }: { event: ScheduleEvent; onClick: (event: ScheduleEvent) => void }) => (
   <button
     onClick={(e) => { e.stopPropagation(); onClick(event); }}
@@ -41,7 +48,7 @@ export function CalendarView({ events }: { events: ScheduleEvent[] }) {
   
   const handleEventClick = (event: ScheduleEvent) => {
     setSelectedEvent(event);
-    setSelectedDate(new Date(event.startDate));
+    setSelectedDate(toDate(event.startDate));
     setDialogOpen(true);
   };
 
@@ -68,7 +75,7 @@ export function CalendarView({ events }: { events: ScheduleEvent[] }) {
       </div>
       <div className="grid grid-cols-7 grid-rows-5 flex-1 border-l border-t">
         {days.map((day) => {
-          const dayEvents = events.filter(e => format(new Date(e.startDate), 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd'));
+          const dayEvents = events.filter(e => format(toDate(e.startDate), 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd'));
           return (
             <div
               key={day.toString()}
