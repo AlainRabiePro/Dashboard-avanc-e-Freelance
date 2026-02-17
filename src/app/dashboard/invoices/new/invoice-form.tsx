@@ -25,30 +25,49 @@ import { mockProjects } from "@/lib/data";
 import { generateInvoiceQuoteDescription } from "@/ai/flows/generate-invoice-quote-description";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
+import { useFirebase, addDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase";
+import { collection, doc, serverTimestamp } from "firebase/firestore";
+import type { Invoice } from "@/lib/types";
 
 const invoiceFormSchema = z.object({
   client: z.string().min(1, "Client is required."),
   invoiceNumber: z.string().min(1, "Invoice number is required."),
   issueDate: z.date({ required_error: "Issue date is required." }),
   dueDate: z.date({ required_error: "Due date is required." }),
+  status: z.enum(['Draft', 'Sent', 'Paid', 'Overdue']),
   items: z.array(
     z.object({
       description: z.string().min(1, "Description is required."),
-      quantity: z.coerce.number().min(0, "Quantity must be positive."),
-      unitPrice: z.coerce.number().min(0, "Price must be positive."),
+      quantity: z.coerce.number().min(0.01, "Quantity must be positive."),
+      unitPrice: z.coerce.number().min(0, "Price must be non-negative."),
     })
   ).min(1, "At least one item is required."),
 });
 
 type InvoiceFormValues = z.infer<typeof invoiceFormSchema>;
 
-export function InvoiceForm() {
+export function InvoiceForm({ invoice }: { invoice?: Invoice }) {
   const { toast } = useToast();
+  const router = useRouter();
+  const { firestore, user } = useFirebase();
+  const isEditMode = !!invoice;
+  
+  const toDate = (date: any): Date => {
+    if (date.toDate) return date.toDate();
+    return new Date(date);
+  }
+
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(invoiceFormSchema),
-    defaultValues: {
+    defaultValues: isEditMode ? {
+        ...invoice,
+        issueDate: toDate(invoice.issueDate),
+        dueDate: toDate(invoice.dueDate),
+    } : {
       client: "",
       invoiceNumber: `INV-${new Date().getFullYear()}-`,
+      status: 'Draft',
       items: [{ description: "", quantity: 1, unitPrice: 0 }],
     },
   });
@@ -58,8 +77,8 @@ export function InvoiceForm() {
     name: "items",
   });
   
-  const [generatingStates, setGeneratingStates] = useState<boolean[]>([]);
-  const [keywords, setKeywords] = useState<string[]>([]);
+  const [generatingStates, setGeneratingStates] = useState<boolean[]>(fields.map(() => false));
+  const [keywords, setKeywords] = useState<string[]>(fields.map(() => ""));
 
   const handleGenerateDescription = async (index: number) => {
     const keyword = keywords[index];
@@ -102,24 +121,48 @@ export function InvoiceForm() {
 
 
   function onSubmit(data: InvoiceFormValues) {
-    console.log(data);
-    toast({
-      title: "Invoice Submitted",
-      description: "Your invoice has been created successfully.",
-    });
+    if (!user || !firestore) return;
+
+    const totalAmount = data.items.reduce((acc, item) => acc + item.quantity * item.unitPrice, 0);
+
+    const invoiceData = {
+      ...data,
+      userId: user.uid,
+      amount: totalAmount,
+      updatedAt: serverTimestamp(),
+      items: data.items.map(item => ({ ...item, total: item.quantity * item.unitPrice })),
+    };
+
+    if (isEditMode) {
+      const invoiceRef = doc(firestore, 'invoices', invoice.id);
+      updateDocumentNonBlocking(invoiceRef, invoiceData);
+      toast({
+        title: "Invoice Updated",
+        description: `Invoice ${data.invoiceNumber} has been updated.`,
+      });
+    } else {
+      const newInvoiceData = { ...invoiceData, createdAt: serverTimestamp() };
+      const invoicesCol = collection(firestore, 'invoices');
+      addDocumentNonBlocking(invoicesCol, newInvoiceData);
+      toast({
+        title: "Invoice Created",
+        description: `Invoice ${data.invoiceNumber} has been created.`,
+      });
+    }
+    router.push('/dashboard/invoices');
   }
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
           <FormField
             control={form.control}
             name="client"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Client</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select a client" />
@@ -152,7 +195,7 @@ export function InvoiceForm() {
             control={form.control}
             name="issueDate"
             render={({ field }) => (
-              <FormItem className="flex flex-col pt-2">
+              <FormItem className="flex flex-col">
                 <FormLabel>Issue Date</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
@@ -175,7 +218,7 @@ export function InvoiceForm() {
             control={form.control}
             name="dueDate"
             render={({ field }) => (
-              <FormItem className="flex flex-col pt-2">
+              <FormItem className="flex flex-col">
                 <FormLabel>Due Date</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
@@ -194,6 +237,28 @@ export function InvoiceForm() {
               </FormItem>
             )}
           />
+          {isEditMode && <FormField
+            control={form.control}
+            name="status"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Status</FormLabel>
+                 <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a status" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {['Draft', 'Sent', 'Paid', 'Overdue'].map(status => (
+                      <SelectItem key={status} value={status}>{status}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />}
         </div>
 
         <div className="space-y-4">
@@ -235,8 +300,9 @@ export function InvoiceForm() {
                   <FormItem className="col-span-4 md:col-span-2">
                     <FormLabel>Quantity</FormLabel>
                     <FormControl>
-                      <Input type="number" {...field} />
+                      <Input type="number" step="0.01" {...field} />
                     </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -247,8 +313,9 @@ export function InvoiceForm() {
                   <FormItem className="col-span-4 md:col-span-2">
                     <FormLabel>Unit Price</FormLabel>
                     <FormControl>
-                      <Input type="number" {...field} />
+                      <Input type="number" step="0.01" {...field} />
                     </FormControl>
+                     <FormMessage />
                   </FormItem>
                 )}
               />
@@ -275,9 +342,10 @@ export function InvoiceForm() {
           </Button>
         </div>
         <div className="flex justify-end">
-          <Button type="submit">Create Invoice</Button>
+          <Button type="submit" disabled={form.formState.isSubmitting}>{isEditMode ? "Update Invoice" : "Create Invoice"}</Button>
         </div>
       </form>
     </Form>
   );
 }
+

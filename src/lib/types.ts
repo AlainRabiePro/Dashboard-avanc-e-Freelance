@@ -84,10 +84,12 @@ export type Invoice = {
   client: string;
   amount: number;
   status: 'Draft' | 'Sent' | 'Paid' | 'Overdue';
-  issueDate: string;
-  dueDate: string;
-  description: string;
+  issueDate: string | Date;
+  dueDate: string | Date;
+  description?: string;
   items: InvoiceItem[];
+  createdAt?: any;
+  updatedAt?: any;
 };
 
 export type Quote = {
@@ -102,3 +104,4 @@ export type Quote = {
   description: string;
   items: InvoiceItem[];
 };
+
