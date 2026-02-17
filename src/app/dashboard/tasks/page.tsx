@@ -3,9 +3,13 @@
 import { useCollection, useFirebase, useMemoFirebase } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
 import type { Project, Task } from '@/lib/types';
-import { TaskBoard } from './task-board';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TaskBoard } from './task-board';
+import { TaskList } from './task-list';
+import { List, KanbanSquare } from 'lucide-react';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+
 
 export default function TasksPage() {
   const { firestore, user } = useFirebase();
@@ -30,27 +34,64 @@ export default function TasksPage() {
 
   return (
     <div className="flex flex-col gap-6 h-full">
-      <Card>
-        <CardHeader>
-          <CardTitle>Tasks</CardTitle>
-          <CardDescription>
-            Manage your project tasks with a drag-and-drop Kanban board.
-          </CardDescription>
-        </CardHeader>
-      </Card>
-      {isLoading ? (
-        <TaskBoardSkeleton />
-      ) : (
-        <TaskBoard tasks={tasks || []} projects={projects || []} />
-      )}
+       <Tabs defaultValue="list" className="h-full flex flex-col">
+        <div className="flex items-center justify-between">
+            <div className="space-y-1">
+                <h1 className="text-2xl font-bold">Tasks</h1>
+                <p className="text-muted-foreground">
+                    Organize and manage your project tasks.
+                </p>
+            </div>
+            <TabsList>
+                <TabsTrigger value="list"><List className="mr-2 h-4 w-4" />List</TabsTrigger>
+                <TabsTrigger value="board"><KanbanSquare className="mr-2 h-4 w-4" />Board</TabsTrigger>
+            </TabsList>
+        </div>
+        
+        <TabsContent value="list" className="flex-1 mt-4">
+             {isLoading ? (
+                <TaskListSkeleton />
+            ) : (
+                <TaskList tasks={tasks || []} projects={projects || []} />
+            )}
+        </TabsContent>
+        <TabsContent value="board" className="flex-1 -mt-2 overflow-hidden">
+            {isLoading ? (
+                <TaskBoardSkeleton />
+            ) : (
+                <TaskBoard tasks={tasks || []} projects={projects || []} />
+            )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
 
+function TaskListSkeleton() {
+  return (
+    <Card>
+      <div className="flex items-center justify-between p-4 border-b">
+         <div className="flex items-center gap-2">
+            <Skeleton className="h-9 w-64" />
+            <Skeleton className="h-9 w-24" />
+         </div>
+         <Skeleton className="h-9 w-24" />
+      </div>
+      <div className="p-0">
+        <div className="p-4 space-y-2">
+          <Skeleton className="h-12 w-full" />
+          {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-12 w-full" />
+          ))}
+        </div>
+      </div>
+    </Card>
+  )
+}
 
 function TaskBoardSkeleton() {
   return (
-    <div className="flex-1 overflow-x-auto">
+    <div className="flex-1 overflow-x-auto h-full">
         <div className="flex gap-4 h-full">
           {['Todo', 'In Progress', 'In Review', 'Done'].map(status => (
             <div key={status} className="w-80 shrink-0">
