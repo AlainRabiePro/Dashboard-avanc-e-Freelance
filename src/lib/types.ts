@@ -33,6 +33,8 @@ export type Client = {
   phone: string;
   status: 'Prospect' | 'Active' | 'Inactive';
   notes: string;
+  createdAt?: any;
+  updatedAt?: any;
 };
 
 export type Subcontractor = {
