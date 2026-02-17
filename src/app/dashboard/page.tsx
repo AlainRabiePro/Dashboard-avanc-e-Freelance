@@ -1,6 +1,6 @@
-
 "use client";
 
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
 import {
@@ -33,6 +33,11 @@ const chartConfig = {
 
 export default function DashboardPage() {
   const totalRevenue = chartData.reduce((acc, curr) => acc + curr.revenue, 0);
+  const [formattedRevenue, setFormattedRevenue] = useState(totalRevenue.toString());
+
+  useEffect(() => {
+    setFormattedRevenue(totalRevenue.toLocaleString());
+  }, []);
 
   return (
     <div className="flex flex-col gap-6">
@@ -43,7 +48,7 @@ export default function DashboardPage() {
             <CircleDollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${totalRevenue.toLocaleString()}</div>
+            <div className="text-2xl font-bold">${formattedRevenue}</div>
             <p className="text-xs text-muted-foreground">+15.2% from last month</p>
           </CardContent>
         </Card>
