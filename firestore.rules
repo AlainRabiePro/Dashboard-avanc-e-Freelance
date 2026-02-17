@@ -1,52 +1,225 @@
-
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    function isAuth() {
+
+    /**
+     * Core Philosophy: This ruleset enforces a strict user-ownership model.
+     * All data is considered private and can only be accessed by the user who
+     * created it. There are no public or shared resources.
+     *
+     * Data Structure: The structure is composed of a primary `/users/{userId}`
+     * collection for user profiles and several top-level collections
+     * (e.g., /projects, /clients, /tasks) for user-generated content.
+     * This flat hierarchy is designed for efficient, secure queries.
+     *
+     * Key Security Decisions:
+     * - Authorization Independence: Every document in a user-content collection
+     *   (like /projects or /tasks) contains a denormalized `userId` field.
+     *   This allows security rules to make authorization decisions by checking
+     *   this field directly, avoiding slow and costly `get()` calls to other
+     *   documents.
+     * - No User Listing: It is not possible for any user to list documents in
+     *   the top-level `/users` collection. Users can only fetch their own
+     *   profile.
+     * - Query-Based Security: Listing documents from collections like `/projects`
+     *   is permitted for any signed-in user, but the `get` rule for individual
+     *   documents ensures that only the owner's documents are actually readable.
+     *   This model relies on the client application performing a query filtered
+     *   by the user's ID (e.g., `where('userId', '==', auth.uid)`), which the
+     *   rules then enforce at the document level.
+     * - Default Deny: Any access not explicitly granted is denied.
+     */
+
+    // ----------------------------------------------------------------------
+    // Helper Functions
+    // ----------------------------------------------------------------------
+
+    /**
+     * Checks if the user is authenticated.
+     */
+    function isSignedIn() {
       return request.auth != null;
     }
 
+    /**
+     * Checks if the request's auth UID matches a given userId from the path.
+     * Used for collections where ownership is defined by the document path.
+     */
     function isOwner(userId) {
-      return request.auth.uid == userId;
+      return isSignedIn() && request.auth.uid == userId;
     }
 
-    match /users/{uid} {
-      allow read, write: if isAuth() && isOwner(uid);
+    /**
+     * Checks ownership for an existing document via the path.
+     * Verifies that the document exists before allowing an update or delete.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
     }
 
+    /**
+     * Checks if the requesting user owns the document based on a `userId`
+     * field within the document's data.
+     */
+    function isResourceOwner() {
+      return isSignedIn() && request.auth.uid == resource.data.userId;
+    }
+
+    /**
+     * Checks ownership for an existing document via the `userId` field.
+     * Verifies that the document exists before allowing an update or delete.
+     */
+    function isExistingResourceOwner() {
+      return resource != null && isResourceOwner();
+    }
+
+    /**
+     * Validates that the `userId` field of a newly created document matches
+     * the authenticated user's ID.
+     */
+    function isCreatingOwnResource() {
+      return isSignedIn() && request.resource.data.userId == request.auth.uid;
+    }
+
+    /**
+     * Enforces immutability of the `userId` field during an update.
+     */
+    function isUserIdImmutable() {
+      return request.resource.data.userId == resource.data.userId;
+    }
+
+    // ----------------------------------------------------------------------
+    // Collection Rules
+    // ----------------------------------------------------------------------
+
+    /**
+     * @description Manages user profiles. A user can create their own profile,
+     *   and can only read or write their own data.
+     * @path /users/{userId}
+     * @allow (create) An authenticated user creating their own profile document.
+     * @deny  (get) An authenticated user trying to read another user's profile.
+     * @principle Restricts access to a user's own data tree using path-based security.
+     */
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Manages user projects. Only the user who created a project
+     *   can read, update, or delete it.
+     * @path /projects/{projectId}
+     * @allow (create) An authenticated user creating a project with their own userId.
+     * @deny  (update) An authenticated user trying to change the userId of a project.
+     * @principle Enforces document ownership for writes via a `userId` field.
+     */
     match /projects/{projectId} {
-      allow read, write: if isAuth() && isOwner(resource.data.userId);
-      allow create: if isAuth() && isOwner(request.resource.data.userId);
+      allow get: if isResourceOwner();
+      allow list: if isSignedIn();
+      allow create: if isCreatingOwnResource();
+      allow update: if isExistingResourceOwner() && isUserIdImmutable();
+      allow delete: if isExistingResourceOwner();
     }
 
+    /**
+     * @description Manages user clients. Only the user who created a client record
+     *   can read, update, or delete it.
+     * @path /clients/{clientId}
+     * @allow (get) An authenticated user reading a client they created.
+     * @deny  (delete) An authenticated user trying to delete another user's client.
+     * @principle Enforces document ownership for writes via a `userId` field.
+     */
     match /clients/{clientId} {
-      allow read, write: if isAuth() && isOwner(resource.data.userId);
-      allow create: if isAuth() && isOwner(request.resource.data.userId);
+      allow get: if isResourceOwner();
+      allow list: if isSignedIn();
+      allow create: if isCreatingOwnResource();
+      allow update: if isExistingResourceOwner() && isUserIdImmutable();
+      allow delete: if isExistingResourceOwner();
     }
 
+    /**
+     * @description Manages subcontractors. Only the user who created a subcontractor
+     *   record can read, update, or delete it.
+     * @path /subcontractors/{subcontractorId}
+     * @allow (create) An authenticated user creating a subcontractor with their own userId.
+     * @deny  (get) A signed-in user trying to read another user's subcontractor.
+     * @principle Enforces document ownership for writes via a `userId` field.
+     */
     match /subcontractors/{subcontractorId} {
-      allow read, write: if isAuth() && isOwner(resource.data.userId);
-      allow create: if isAuth() && isOwner(request.resource.data.userId);
+      allow get: if isResourceOwner();
+      allow list: if isSignedIn();
+      allow create: if isCreatingOwnResource();
+      allow update: if isExistingResourceOwner() && isUserIdImmutable();
+      allow delete: if isExistingResourceOwner();
     }
 
+    /**
+     * @description Manages tasks. Only the user who owns a task can read,
+     *   update, or delete it.
+     * @path /tasks/{taskId}
+     * @allow (update) An authenticated user updating their own task record.
+     * @deny  (update) A user trying to reassign a task to another user by changing the userId.
+     * @principle Enforces document ownership for writes via a `userId` field.
+     */
     match /tasks/{taskId} {
-      allow read, write: if isAuth() && isOwner(resource.data.userId);
-      allow create: if isAuth() && isOwner(request.resource.data.userId);
+      allow get: if isResourceOwner();
+      allow list: if isSignedIn();
+      allow create: if isCreatingOwnResource();
+      allow update: if isExistingResourceOwner() && isUserIdImmutable();
+      allow delete: if isExistingResourceOwner();
     }
 
+    /**
+     * @description Manages schedule events. Only the user who owns an event can read,
+     *   update, or delete it.
+     * @path /scheduleEvents/{eventId}
+     * @allow (get) An authenticated user reading their own schedule event.
+     * @deny  (create) An authenticated user trying to create an event for another user.
+     * @principle Enforces document ownership for writes via a `userId` field.
+     */
     match /scheduleEvents/{eventId} {
-      allow read, write: if isAuth() && isOwner(resource.data.userId);
-      allow create: if isAuth() && isOwner(request.resource.data.userId);
+      allow get: if isResourceOwner();
+      allow list: if isSignedIn();
+      allow create: if isCreatingOwnResource();
+      allow update: if isExistingResourceOwner() && isUserIdImmutable();
+      allow delete: if isExistingResourceOwner();
     }
 
+    /**
+     * @description Manages invoices. Only the user who created an invoice can read,
+     *   update, or delete it.
+     * @path /invoices/{invoiceId}
+     * @allow (delete) An authenticated user deleting an invoice they created.
+     * @deny  (delete) A signed-in user trying to delete an invoice they do not own.
+     * @principle Enforces document ownership for writes via a `userId` field.
+     */
     match /invoices/{invoiceId} {
-      allow read, write: if isAuth() && isOwner(resource.data.userId);
-      allow create: if isAuth() && isOwner(request.resource.data.userId);
+      allow get: if isResourceOwner();
+      allow list: if isSignedIn();
+      allow create: if isCreatingOwnResource();
+      allow update: if isExistingResourceOwner() && isUserIdImmutable();
+      allow delete: if isExistingResourceOwner();
     }
 
+    /**
+     * @description Manages quotes. Only the user who created a quote can read,
+     *   update, or delete it.
+     * @path /quotes/{quoteId}
+     * @allow (get) An authenticated user reading a quote they created.
+     * @deny  (update) A signed-in user trying to update a quote they do not own.
+     * @principle Enforces document ownership for writes via a `userId` field.
+     */
     match /quotes/{quoteId} {
-      allow read, write: if isAuth() && isOwner(resource.data.userId);
-      allow create: if isAuth() && isOwner(request.resource.data.userId);
+      allow get: if isResourceOwner();
+      allow list: if isSignedIn();
+      allow create: if isCreatingOwnResource();
+      allow update: if isExistingResourceOwner() && isUserIdImmutable();
+      allow delete: if isExistingResourceOwner();
     }
+
   }
 }

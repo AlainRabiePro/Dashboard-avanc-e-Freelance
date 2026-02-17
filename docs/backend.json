@@ -1,0 +1,793 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a freelance user profile in the application. This entity stores core user information required for the dashboard functionality.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the User entity, typically derived from the authentication system's user ID."
+        },
+        "email": {
+          "type": "string",
+          "description": "The user's email address.",
+          "format": "email"
+        },
+        "name": {
+          "type": "string",
+          "description": "The full name of the user."
+        },
+        "company": {
+          "type": "string",
+          "description": "The company name associated with the user, if applicable."
+        },
+        "phone": {
+          "type": "string",
+          "description": "The user's phone number."
+        },
+        "avatar": {
+          "type": "string",
+          "description": "URL to the user's avatar image.",
+          "format": "uri"
+        },
+        "role": {
+          "type": "string",
+          "description": "The role of the user within the application, e.g., 'freelancer'.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the user profile was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating the last time the user profile was updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "email",
+        "name",
+        "role",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Project": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Project",
+      "type": "object",
+      "description": "Represents a project undertaken by a freelance user. Projects track status, budget, and timelines.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Project entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User who owns this project. (Relationship: User 1:N Project)"
+        },
+        "name": {
+          "type": "string",
+          "description": "The name or title of the project."
+        },
+        "client": {
+          "type": "string",
+          "description": "The name of the client associated with this project."
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the project."
+        },
+        "status": {
+          "type": "string",
+          "description": "The current status of the project, indicating its phase.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "progress": {
+          "type": "number",
+          "description": "The percentage completion of the project, from 0 to 100."
+        },
+        "budget": {
+          "type": "number",
+          "description": "The allocated budget for the project."
+        },
+        "startDate": {
+          "type": "string",
+          "description": "The planned start date of the project.",
+          "format": "date-time"
+        },
+        "endDate": {
+          "type": "string",
+          "description": "The planned end date of the project.",
+          "format": "date-time"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the project was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating the last time the project was updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "name",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Client": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Client",
+      "type": "object",
+      "description": "Manages client information, including contact details and their current status with the freelance user.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Client entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User who owns this client record. (Relationship: User 1:N Client)"
+        },
+        "name": {
+          "type": "string",
+          "description": "The full name of the client."
+        },
+        "company": {
+          "type": "string",
+          "description": "The company name of the client."
+        },
+        "email": {
+          "type": "string",
+          "description": "The client's email address.",
+          "format": "email"
+        },
+        "phone": {
+          "type": "string",
+          "description": "The client's phone number."
+        },
+        "status": {
+          "type": "string",
+          "description": "The current relationship status with the client.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "notes": {
+          "type": "string",
+          "description": "Any additional notes or comments about the client."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the client record was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating the last time the client record was updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "name",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Subcontractor": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Subcontractor",
+      "type": "object",
+      "description": "Stores details for subcontractors that a freelance user might collaborate with on projects.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Subcontractor entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User who manages this subcontractor record. (Relationship: User 1:N Subcontractor)"
+        },
+        "name": {
+          "type": "string",
+          "description": "The full name of the subcontractor."
+        },
+        "specialty": {
+          "type": "string",
+          "description": "The primary area of expertise or specialty of the subcontractor."
+        },
+        "email": {
+          "type": "string",
+          "description": "The subcontractor's email address.",
+          "format": "email"
+        },
+        "phone": {
+          "type": "string",
+          "description": "The subcontractor's phone number."
+        },
+        "hourlyRate": {
+          "type": "number",
+          "description": "The hourly billing rate of the subcontractor."
+        },
+        "status": {
+          "type": "string",
+          "description": "The current status of the subcontractor, e.g., active or inactive.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "bio": {
+          "type": "string",
+          "description": "A short biography or description of the subcontractor's professional background."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the subcontractor record was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating the last time the subcontractor record was updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "name",
+        "email",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Task": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Task",
+      "type": "object",
+      "description": "Defines a specific task, typically associated with a project and potentially assigned to a subcontractor.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Task entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User who owns this task record. (Relationship: User 1:N Task)"
+        },
+        "title": {
+          "type": "string",
+          "description": "The title or short description of the task."
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the task."
+        },
+        "projectId": {
+          "type": "string",
+          "description": "Reference to the Project this task belongs to. (Relationship: Project 1:N Task)"
+        },
+        "assignedTo": {
+          "type": "string",
+          "description": "Reference to the Subcontractor ID to whom the task is assigned. (Relationship: Subcontractor 1:N Task)"
+        },
+        "status": {
+          "type": "string",
+          "description": "The current status of the task, indicating its progression.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "priority": {
+          "type": "string",
+          "description": "The priority level of the task.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "dueDate": {
+          "type": "string",
+          "description": "The deadline for the task.",
+          "format": "date-time"
+        },
+        "startDate": {
+          "type": "string",
+          "description": "The planned start date of the task.",
+          "format": "date-time"
+        },
+        "completedAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the task was completed, if applicable.",
+          "format": "date-time"
+        },
+        "estimatedHours": {
+          "type": "number",
+          "description": "The estimated number of hours required to complete the task."
+        },
+        "actualHours": {
+          "type": "number",
+          "description": "The actual number of hours spent on the task."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the task was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating the last time the task was updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "title",
+        "projectId",
+        "status",
+        "priority",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ScheduleEvent": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ScheduleEvent",
+      "type": "object",
+      "description": "Manages calendar events, such as meetings, deadlines, and other important schedule entries.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the ScheduleEvent entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User who owns this schedule event. (Relationship: User 1:N ScheduleEvent)"
+        },
+        "title": {
+          "type": "string",
+          "description": "The title or subject of the event."
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the event."
+        },
+        "startDate": {
+          "type": "string",
+          "description": "The start date and time of the event.",
+          "format": "date-time"
+        },
+        "endDate": {
+          "type": "string",
+          "description": "The end date and time of the event.",
+          "format": "date-time"
+        },
+        "type": {
+          "type": "string",
+          "description": "The category or type of the event.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "location": {
+          "type": "string",
+          "description": "The physical or virtual location of the event."
+        },
+        "isAllDay": {
+          "type": "boolean",
+          "description": "Indicates if the event spans the entire day."
+        },
+        "relatedProjectId": {
+          "type": "string",
+          "description": "Optional reference to a Project related to this event. (Relationship: Project 1:N ScheduleEvent)"
+        },
+        "relatedTaskId": {
+          "type": "string",
+          "description": "Optional reference to a Task related to this event. (Relationship: Task 1:N ScheduleEvent)"
+        },
+        "attendees": {
+          "type": "array",
+          "description": "A list of IDs of participants attending the event, which could be User IDs or Subcontractor IDs.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the event was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating the last time the event was updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "title",
+        "startDate",
+        "endDate",
+        "type",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Invoice": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Invoice",
+      "type": "object",
+      "description": "Manages invoices generated by the freelance user for clients, tracking amounts, statuses, and line items.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Invoice entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User who created this invoice. (Relationship: User 1:N Invoice)"
+        },
+        "invoiceNumber": {
+          "type": "string",
+          "description": "A unique identifier for the invoice, typically an alphanumeric sequence."
+        },
+        "client": {
+          "type": "string",
+          "description": "The name of the client to whom the invoice is issued."
+        },
+        "amount": {
+          "type": "number",
+          "description": "The total monetary amount of the invoice."
+        },
+        "status": {
+          "type": "string",
+          "description": "The current payment status of the invoice.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "issueDate": {
+          "type": "string",
+          "description": "The date when the invoice was issued.",
+          "format": "date-time"
+        },
+        "dueDate": {
+          "type": "string",
+          "description": "The date by which the invoice is expected to be paid.",
+          "format": "date-time"
+        },
+        "description": {
+          "type": "string",
+          "description": "A general description or summary for the invoice."
+        },
+        "items": {
+          "type": "array",
+          "description": "A list of line items included in the invoice.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the invoice was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating the last time the invoice was updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "invoiceNumber",
+        "client",
+        "amount",
+        "status",
+        "issueDate",
+        "dueDate",
+        "createdAt",
+        "updatedAt",
+        "items"
+      ]
+    },
+    "InvoiceItem": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "InvoiceItem",
+      "type": "object",
+      "description": "Represents a single line item within an invoice.",
+      "properties": {
+        "description": {
+          "type": "string",
+          "description": "A description of the service or product for this item."
+        },
+        "quantity": {
+          "type": "number",
+          "description": "The quantity of the item or unit of service."
+        },
+        "unitPrice": {
+          "type": "number",
+          "description": "The price per unit of the item or service."
+        },
+        "total": {
+          "type": "number",
+          "description": "The total cost for this line item (quantity * unitPrice)."
+        }
+      },
+      "required": [
+        "description",
+        "quantity",
+        "unitPrice",
+        "total"
+      ]
+    },
+    "Quote": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Quote",
+      "type": "object",
+      "description": "Manages quotes or proposals issued by the freelance user to prospective clients, including proposed services and pricing.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Quote entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User who created this quote. (Relationship: User 1:N Quote)"
+        },
+        "quoteNumber": {
+          "type": "string",
+          "description": "A unique identifier for the quote, typically an alphanumeric sequence."
+        },
+        "client": {
+          "type": "string",
+          "description": "The name of the client to whom the quote is issued."
+        },
+        "amount": {
+          "type": "number",
+          "description": "The total monetary amount quoted."
+        },
+        "status": {
+          "type": "string",
+          "description": "The current status of the quote (e.g., sent, accepted, rejected).",
+          "items": {
+            "type": "string"
+          }
+        },
+        "issueDate": {
+          "type": "string",
+          "description": "The date when the quote was issued.",
+          "format": "date-time"
+        },
+        "validUntil": {
+          "type": "string",
+          "description": "The date until which the quote remains valid.",
+          "format": "date-time"
+        },
+        "description": {
+          "type": "string",
+          "description": "A general description or summary for the quote."
+        },
+        "items": {
+          "type": "array",
+          "description": "A list of line items included in the quote.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the quote was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating the last time the quote was updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "quoteNumber",
+        "client",
+        "amount",
+        "status",
+        "issueDate",
+        "validUntil",
+        "createdAt",
+        "updatedAt",
+        "items"
+      ]
+    },
+    "QuoteItem": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "QuoteItem",
+      "type": "object",
+      "description": "Represents a single line item within a quote.",
+      "properties": {
+        "description": {
+          "type": "string",
+          "description": "A description of the service or product for this item."
+        },
+        "quantity": {
+          "type": "number",
+          "description": "The quantity of the item or unit of service."
+        },
+        "unitPrice": {
+          "type": "number",
+          "description": "The price per unit of the item or service."
+        },
+        "total": {
+          "type": "number",
+          "description": "The total cost for this line item (quantity * unitPrice)."
+        }
+      },
+      "required": [
+        "description",
+        "quantity",
+        "unitPrice",
+        "total"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores individual freelance user profiles. Access is restricted to the owner of the profile via path-based ownership. Includes userId for direct authentication matching.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique ID of the user, corresponding to Firebase Authentication UID."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/projects/{projectId}",
+        "definition": {
+          "entityName": "Project",
+          "schema": {
+            "$ref": "#/backend/entities/Project"
+          },
+          "description": "Collection for freelance projects. Each project document includes a denormalized 'userId' field for authorization independence, ensuring only the owner can access their projects. Supports efficient querying by userId.",
+          "params": [
+            {
+              "name": "projectId",
+              "description": "The unique ID of the project."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/clients/{clientId}",
+        "definition": {
+          "entityName": "Client",
+          "schema": {
+            "$ref": "#/backend/entities/Client"
+          },
+          "description": "Collection for client records managed by a freelance user. Each client document includes a denormalized 'userId' field for authorization independence, ensuring only the owner can access their client list. Supports efficient querying by userId.",
+          "params": [
+            {
+              "name": "clientId",
+              "description": "The unique ID of the client."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/subcontractors/{subcontractorId}",
+        "definition": {
+          "entityName": "Subcontractor",
+          "schema": {
+            "$ref": "#/backend/entities/Subcontractor"
+          },
+          "description": "Collection for subcontractor details managed by a freelance user. Each subcontractor document includes a denormalized 'userId' field for authorization independence, ensuring only the owner can access their subcontractor list. Supports efficient querying by userId.",
+          "params": [
+            {
+              "name": "subcontractorId",
+              "description": "The unique ID of the subcontractor."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/tasks/{taskId}",
+        "definition": {
+          "entityName": "Task",
+          "schema": {
+            "$ref": "#/backend/entities/Task"
+          },
+          "description": "Collection for tasks, typically associated with projects. Each task document includes a denormalized 'userId' field for authorization independence, ensuring only the owner can access their tasks. Supports efficient querying by userId and projectId.",
+          "params": [
+            {
+              "name": "taskId",
+              "description": "The unique ID of the task."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/scheduleEvents/{eventId}",
+        "definition": {
+          "entityName": "ScheduleEvent",
+          "schema": {
+            "$ref": "#/backend/entities/ScheduleEvent"
+          },
+          "description": "Collection for calendar events. Each event document includes a denormalized 'userId' field for authorization independence, ensuring only the owner can access their schedule. Supports efficient querying by userId and date ranges.",
+          "params": [
+            {
+              "name": "eventId",
+              "description": "The unique ID of the schedule event."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/invoices/{invoiceId}",
+        "definition": {
+          "entityName": "Invoice",
+          "schema": {
+            "$ref": "#/backend/entities/Invoice"
+          },
+          "description": "Collection for invoices generated by the freelance user. Each invoice document includes a denormalized 'userId' field for authorization independence. The 'items' field is an embedded array of objects conforming to the InvoiceItem schema.",
+          "params": [
+            {
+              "name": "invoiceId",
+              "description": "The unique ID of the invoice."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/quotes/{quoteId}",
+        "definition": {
+          "entityName": "Quote",
+          "schema": {
+            "$ref": "#/backend/entities/Quote"
+          },
+          "description": "Collection for quotes/proposals issued by the freelance user. Each quote document includes a denormalized 'userId' field for authorization independence. The 'items' field is an embedded array of objects conforming to the QuoteItem schema.",
+          "params": [
+            {
+              "name": "quoteId",
+              "description": "The unique ID of the quote."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed following the core principles of Authorization Independence, Structural Segregation, and Access Modeling to ensure security, scalability, and debuggability for the FreelanceForge application. \n\n**Authorization Independence:** This is achieved by explicitly denormalizing the `userId` into every document within user-owned collections: `projects`, `clients`, `subcontractors`, `tasks`, `scheduleEvents`, `invoices`, and `quotes`. For instance, a document in `/projects/{projectId}` will contain a `userId` field. This allows Firestore security rules to directly evaluate ownership by comparing `request.auth.uid` with `resource.data.userId` (e.g., `allow read, write: if request.auth.uid == resource.data.userId;`). This eliminates the need for expensive and complex `get()` calls to parent documents (e.g., `/users/{uid}`) within security rules, preventing broken atomic operations and simplifying rule debugging significantly.\n\n**QAPs (Rules are not Filters):** This design supports Query-Able Paths (QAPs) by using structural segregation and the denormalized `userId`. Each major entity type (e.g., projects, clients) is placed in its own top-level collection (e.g., `/projects`, `/clients`). This ensures all documents within a given collection share the same security posture. Since every document in these collections contains the `userId` field, client applications can construct queries that filter by `userId` (e.g., `db.collection('projects').where('userId', '==', currentUserId)`). The security rules then *enforce* these queries by verifying that `request.auth.uid` matches the `userId` in the `resource.data`. This means the rules validate that the requested data belongs to the authenticated user, rather than attempting to filter a broad, insecure query. This combination of explicit client-side filtering on an indexed field (`userId`) and server-side rule enforcement guarantees that `list` operations are secure and efficient.\n\n**Access Modeling:** Private data for the user profile uses the path-based ownership `/users/{userId}`. All other entities representing a User 1:N Entity relationship (Projects, Clients, etc.) utilize flat top-level collections (e.g., `/projects/{projectId}`) with the `userId` denormalized into each document for direct ownership checks. This is a highly secure and scalable pattern for user-specific data. `InvoiceItem` and `QuoteItem` are modeled as embedded arrays of objects within their respective parent `Invoice` and `Quote` documents, avoiding complex nested subcollections for simple relational data that is always accessed with its parent.\n\n**Data Clarity and Predictability:** The schema consistently uses `id`, `userId`, `createdAt`, `updatedAt` fields. Status fields (`status`) explicitly define the finite state of entities. All wildcards are descriptive, enhancing readability and maintainability of the database structure and associated security rules."
+  }
+}
