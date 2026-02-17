@@ -7,8 +7,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TaskBoard } from './task-board';
 import { TaskList } from './task-list';
-import { List, KanbanSquare } from 'lucide-react';
+import { List, KanbanSquare, PlusCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { TaskFormDialog } from './task-form-dialog';
 
 
 export default function TasksPage() {
@@ -42,10 +44,20 @@ export default function TasksPage() {
                     Organize and manage your project tasks.
                 </p>
             </div>
-            <TabsList>
-                <TabsTrigger value="list"><List className="mr-2 h-4 w-4" />List</TabsTrigger>
-                <TabsTrigger value="board"><KanbanSquare className="mr-2 h-4 w-4" />Board</TabsTrigger>
-            </TabsList>
+             <div className="flex items-center gap-2">
+              {!isLoading && (
+                <TaskFormDialog projects={projects || []}>
+                  <Button>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Create Task
+                  </Button>
+                </TaskFormDialog>
+              )}
+              <TabsList>
+                  <TabsTrigger value="list"><List className="mr-2 h-4 w-4" />List</TabsTrigger>
+                  <TabsTrigger value="board"><KanbanSquare className="mr-2 h-4 w-4" />Board</TabsTrigger>
+              </TabsList>
+            </div>
         </div>
         
         <TabsContent value="list" className="flex-1 mt-4">

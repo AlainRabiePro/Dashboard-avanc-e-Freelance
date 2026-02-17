@@ -58,6 +58,7 @@ export type Task = {
   priority: 'Low' | 'Medium' | 'High' | 'Critical';
   dueDate: string;
   createdAt?: any;
+  updatedAt?: any;
 };
 
 export type ScheduleEvent = {
@@ -104,4 +105,5 @@ export type Quote = {
   description: string;
   items: InvoiceItem[];
 };
+
 
