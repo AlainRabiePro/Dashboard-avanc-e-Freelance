@@ -1,15 +1,42 @@
+'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ProfileForm } from "./profile-form";
+import { PasswordForm } from "./password-form";
+import { Separator } from "@/components/ui/separator";
 
 export default function SettingsPage() {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Settings</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p>User profile and application settings will be managed here. You will be able to update your personal information, change your password, and configure notifications.</p>
-      </CardContent>
-    </Card>
+    <div className="space-y-6">
+      <div>
+        <h3 className="text-lg font-medium">Settings</h3>
+        <p className="text-sm text-muted-foreground">
+          Manage your account settings and preferences.
+        </p>
+      </div>
+      <Separator />
+      <Card>
+        <CardHeader>
+          <CardTitle>Profile</CardTitle>
+          <CardDescription>
+            Update your personal information. Your email address cannot be changed.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ProfileForm />
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Password</CardTitle>
+          <CardDescription>
+            Change your password. Make sure to choose a strong one.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <PasswordForm />
+        </CardContent>
+      </Card>
+    </div>
   );
 }
