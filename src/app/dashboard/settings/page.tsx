@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ProfileForm } from "./profile-form";
 import { PasswordForm } from "./password-form";
 import { Separator } from "@/components/ui/separator";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function SettingsPage() {
   return (
@@ -35,6 +36,20 @@ export default function SettingsPage() {
         </CardHeader>
         <CardContent>
           <PasswordForm />
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Appearance</CardTitle>
+          <CardDescription>
+            Customize the appearance of the app. Switch between light and dark mode.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-medium">Theme</p>
+            <ThemeToggle />
+          </div>
         </CardContent>
       </Card>
     </div>
