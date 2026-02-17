@@ -12,9 +12,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 function getStatusVariant(status: Quote['status']) {
   switch (status) {
@@ -33,9 +35,44 @@ export default function QuoteDetailsPage() {
   const id = params.id as string;
   const { firestore } = useFirebase();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const quoteRef = useRef<HTMLDivElement>(null);
 
-  const quoteRef = useMemoFirebase(() => firestore && id ? doc(firestore, 'quotes', id) : null, [firestore, id]);
-  const { data: quote, isLoading } = useDoc<Quote>(quoteRef);
+  const quoteDocRef = useMemoFirebase(() => firestore && id ? doc(firestore, 'quotes', id) : null, [firestore, id]);
+  const { data: quote, isLoading } = useDoc<Quote>(quoteDocRef);
+
+  const handleDownloadPdf = async () => {
+    const element = quoteRef.current;
+    if (!element || !quote) return;
+
+    toast({
+      title: 'Generating PDF...',
+      description: 'Your quote is being exported as a PDF.',
+    });
+
+    try {
+        const canvas = await html2canvas(element, { scale: 2 });
+        const imgData = canvas.toDataURL('image/png');
+      
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        const imgWidth = canvas.width;
+        const imgHeight = canvas.height;
+        const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+        
+        const imgX = (pdfWidth - imgWidth * ratio) / 2;
+
+        pdf.addImage(imgData, 'PNG', imgX, 10, imgWidth * ratio, imgHeight * ratio);
+        pdf.save(`Quote-${quote.quoteNumber}.pdf`);
+    } catch (error) {
+      console.error('PDF Export Error:', error);
+      toast({
+        title: 'PDF Export Failed',
+        description: 'An error occurred while generating the PDF.',
+        variant: 'destructive',
+      });
+    }
+  };
 
   const handleDelete = () => {
     if (!quote || !firestore) return;
@@ -76,23 +113,25 @@ export default function QuoteDetailsPage() {
 
   return (
     <>
-      <div className="flex items-center gap-4 mb-6">
-        <Button variant="outline" size="icon" asChild>
-           <Link href="/dashboard/quotes"><ArrowLeft /></Link>
-        </Button>
-        <h1 className="text-3xl font-bold">Quote {quote.quoteNumber}</h1>
+      <div className="flex items-center justify-between gap-4 mb-6">
+        <div className="flex items-center gap-4">
+          <Button variant="outline" size="icon" asChild>
+            <Link href="/dashboard/quotes"><ArrowLeft /></Link>
+          </Button>
+          <h1 className="text-3xl font-bold">Quote {quote.quoteNumber}</h1>
+        </div>
+        <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => window.print()}><Printer className="mr-2 h-4 w-4" /> Print</Button>
+            <Button variant="outline" onClick={handleDownloadPdf}><FileDown className="mr-2 h-4 w-4" /> PDF</Button>
+            <Button asChild><Link href={`/dashboard/quotes/${quote.id}/edit`}><Edit className="mr-2 h-4 w-4" /> Edit</Link></Button>
+            <Button variant="destructive" onClick={() => setShowDeleteDialog(true)}><Trash2 className="mr-2 h-4 w-4" /> Delete</Button>
+        </div>
       </div>
-      <Card>
-        <CardHeader className="flex-row items-center justify-between">
+      <Card ref={quoteRef}>
+        <CardHeader>
             <div>
               <CardTitle>Quote Details</CardTitle>
               <CardDescription>Issued on {formatDate(quote.issueDate)}</CardDescription>
-            </div>
-            <div className="flex items-center gap-2">
-                <Button variant="outline" onClick={() => window.print()}><Printer className="mr-2 h-4 w-4" /> Print</Button>
-                <Button variant="outline"><FileDown className="mr-2 h-4 w-4" /> PDF</Button>
-                <Button asChild><Link href={`/dashboard/quotes/${quote.id}/edit`}><Edit className="mr-2 h-4 w-4" /> Edit</Link></Button>
-                <Button variant="destructive" onClick={() => setShowDeleteDialog(true)}><Trash2 className="mr-2 h-4 w-4" /> Delete</Button>
             </div>
         </CardHeader>
         <CardContent>
