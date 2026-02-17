@@ -6,8 +6,9 @@ import { cva } from 'class-variance-authority';
 import { Task } from '@/lib/types';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Folder } from 'lucide-react';
+import { Folder, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 interface TaskCardProps {
   task: Task;
@@ -58,6 +59,8 @@ export function TaskCard({ task, isOverlay }: TaskCardProps) {
     }
   });
 
+  const assignedUserInitials = task.assignedToName?.split(" ").map((n) => n[0]).join("") || <User className="h-4 w-4" />;
+
   return (
     <Card
       ref={setNodeRef}
@@ -87,6 +90,17 @@ export function TaskCard({ task, isOverlay }: TaskCardProps) {
                 Due: {new Date(task.dueDate).toLocaleDateString()}
             </div>
         </div>
+         {task.assignedToName && (
+            <div className="flex items-center justify-between pt-2 mt-2 border-t">
+                <span className="text-xs text-muted-foreground">Assigned to</span>
+                <div className="flex items-center gap-2">
+                    <span className="text-xs font-medium">{task.assignedToName}</span>
+                    <Avatar className="h-6 w-6">
+                        <AvatarFallback className="text-xs">{assignedUserInitials}</AvatarFallback>
+                    </Avatar>
+                </div>
+            </div>
+        )}
       </CardContent>
     </Card>
   );

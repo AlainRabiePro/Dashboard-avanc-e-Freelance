@@ -2,7 +2,7 @@
 
 import { useCollection, useFirebase, useMemoFirebase } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
-import type { Project, Task } from '@/lib/types';
+import type { Project, Subcontractor, Task } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TaskBoard } from './task-board';
@@ -32,7 +32,16 @@ export default function TasksPage() {
   );
   const { data: projects, isLoading: isLoadingProjects } = useCollection<Project>(projectsQuery);
 
-  const isLoading = isLoadingTasks || isLoadingProjects;
+  const subcontractorsQuery = useMemoFirebase(
+    () => user?.uid && firestore
+      ? query(collection(firestore, 'subcontractors'), where('userId', '==', user.uid))
+      : null,
+    [user?.uid, firestore]
+  );
+  const { data: subcontractors, isLoading: isLoadingSubcontractors } = useCollection<Subcontractor>(subcontractorsQuery);
+
+
+  const isLoading = isLoadingTasks || isLoadingProjects || isLoadingSubcontractors;
 
   return (
     <div className="flex flex-col gap-6 h-full">
@@ -46,7 +55,7 @@ export default function TasksPage() {
             </div>
              <div className="flex items-center gap-2">
               {!isLoading && (
-                <TaskFormDialog projects={projects || []}>
+                <TaskFormDialog projects={projects || []} subcontractors={subcontractors || []}>
                   <Button>
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Create Task
@@ -64,14 +73,14 @@ export default function TasksPage() {
              {isLoading ? (
                 <TaskListSkeleton />
             ) : (
-                <TaskList tasks={tasks || []} projects={projects || []} />
+                <TaskList tasks={tasks || []} projects={projects || []} subcontractors={subcontractors || []} />
             )}
         </TabsContent>
         <TabsContent value="board" className="flex-1 -mt-2 overflow-hidden">
             {isLoading ? (
                 <TaskBoardSkeleton />
             ) : (
-                <TaskBoard tasks={tasks || []} projects={projects || []} />
+                <TaskBoard tasks={tasks || []} projects={projects || []} subcontractors={subcontractors || []} />
             )}
         </TabsContent>
       </Tabs>

@@ -23,7 +23,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { useFirebase, addDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
 import { collection, doc, serverTimestamp } from 'firebase/firestore';
-import type { Project, Task } from '@/lib/types';
+import type { Project, Subcontractor, Task } from '@/lib/types';
 import {
   Dialog,
   DialogContent,
@@ -44,6 +44,7 @@ const taskFormSchema = z.object({
   status: z.enum(['Todo', 'In Progress', 'In Review', 'Done']),
   priority: z.enum(['Low', 'Medium', 'High', 'Critical']),
   dueDate: z.date({ required_error: 'Due date is required.' }),
+  assignedTo: z.string().optional(),
 });
 
 type TaskFormValues = z.infer<typeof taskFormSchema>;
@@ -51,11 +52,12 @@ type TaskFormValues = z.infer<typeof taskFormSchema>;
 interface TaskFormDialogProps {
   task?: Task;
   projects: Project[];
+  subcontractors: Subcontractor[];
   children: React.ReactNode; // The trigger
   defaultStatus?: Task['status'];
 }
 
-export function TaskFormDialog({ task, projects, children, defaultStatus }: TaskFormDialogProps) {
+export function TaskFormDialog({ task, projects, subcontractors, children, defaultStatus }: TaskFormDialogProps) {
   const { toast } = useToast();
   const { firestore, user } = useFirebase();
   const isEditMode = !!task;
@@ -76,18 +78,20 @@ export function TaskFormDialog({ task, projects, children, defaultStatus }: Task
       status: task?.status ?? defaultStatus ?? 'Todo',
       priority: task?.priority ?? 'Medium',
       dueDate: toDate(task?.dueDate),
+      assignedTo: task?.assignedTo ?? '',
     },
   });
   
   React.useEffect(() => {
     if (isOpen) {
         form.reset({
-        title: task?.title ?? '',
-        description: task?.description ?? '',
-        projectId: task?.projectId ?? '',
-        status: task?.status ?? defaultStatus ?? 'Todo',
-        priority: task?.priority ?? 'Medium',
-        dueDate: toDate(task?.dueDate),
+          title: task?.title ?? '',
+          description: task?.description ?? '',
+          projectId: task?.projectId ?? '',
+          status: task?.status ?? defaultStatus ?? 'Todo',
+          priority: task?.priority ?? 'Medium',
+          dueDate: toDate(task?.dueDate),
+          assignedTo: task?.assignedTo ?? '',
         })
     }
   }, [isOpen, task, form, defaultStatus]);
@@ -204,6 +208,22 @@ export function TaskFormDialog({ task, projects, children, defaultStatus }: Task
                       </SelectContent>
                     </Select>
                     <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="assignedTo"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Assign To</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value} disabled={!subcontractors || subcontractors.length === 0}>
+                      <FormControl><SelectTrigger><SelectValue placeholder="Select a subcontractor" /></SelectTrigger></FormControl>
+                      <SelectContent>
+                        <SelectItem value="">Unassigned</SelectItem>
+                        {subcontractors.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
                   </FormItem>
                 )}
               />

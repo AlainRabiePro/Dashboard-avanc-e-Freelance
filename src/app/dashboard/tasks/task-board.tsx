@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import type { Project, Task } from '@/lib/types';
+import type { Project, Subcontractor, Task } from '@/lib/types';
 import {
   DndContext,
   closestCorners,
@@ -27,24 +27,25 @@ type TaskContainer = {
   items: Task[];
 };
 
-export function TaskBoard({ tasks, projects }: { tasks: Task[], projects: Project[] }) {
+export function TaskBoard({ tasks, projects, subcontractors }: { tasks: Task[], projects: Project[], subcontractors: Subcontractor[] }) {
   const { firestore } = useFirebase();
   const [containers, setContainers] = useState<TaskContainer[]>([]);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
 
   useMemo(() => {
-    const tasksWithProjectNames = tasks.map(task => ({
+    const tasksWithDetails = tasks.map(task => ({
       ...task,
-      projectName: projects.find(p => p.id === task.projectId)?.name || 'Unknown Project'
+      projectName: projects.find(p => p.id === task.projectId)?.name || 'Unknown Project',
+      assignedToName: subcontractors.find(s => s.id === task.assignedTo)?.name
     })).sort((a,b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0) );
 
     const initialContainers = TASK_STATUSES.map(status => ({
       id: status,
       title: status,
-      items: tasksWithProjectNames.filter(task => task.status === status)
+      items: tasksWithDetails.filter(task => task.status === status)
     }));
     setContainers(initialContainers);
-  }, [tasks, projects]);
+  }, [tasks, projects, subcontractors]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),

@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import type { Project, Task } from '@/lib/types';
+import type { Project, Subcontractor, Task } from '@/lib/types';
 import {
   Table,
   TableBody,
@@ -50,6 +50,7 @@ import { cn } from '@/lib/utils';
 interface TaskListProps {
   tasks: Task[];
   projects: Project[];
+  subcontractors: Subcontractor[];
 }
 
 const statusBadgeVariants = {
@@ -67,28 +68,30 @@ const priorityBadgeVariants = {
 } as const;
 
 
-export function TaskList({ tasks: initialTasks, projects }: TaskListProps) {
+export function TaskList({ tasks: initialTasks, projects, subcontractors }: TaskListProps) {
   const [filter, setFilter] = React.useState('');
   const [taskToDelete, setTaskToDelete] = React.useState<Task | null>(null);
   const { firestore } = useFirebase();
   const { toast } = useToast();
 
 
-  const tasksWithProjectNames = React.useMemo(() => {
+  const tasksWithDetails = React.useMemo(() => {
     return initialTasks.map(task => {
       const project = projects.find(p => p.id === task.projectId);
+      const subcontractor = subcontractors.find(s => s.id === task.assignedTo);
       return {
         ...task,
         projectName: project ? project.name : 'Unknown Project',
+        assignedToName: subcontractor ? subcontractor.name : 'Unassigned',
       };
     });
-  }, [initialTasks, projects]);
+  }, [initialTasks, projects, subcontractors]);
 
   const filteredTasks = React.useMemo(() => {
-    return tasksWithProjectNames.filter(task =>
+    return tasksWithDetails.filter(task =>
       task.title.toLowerCase().includes(filter.toLowerCase())
     );
-  }, [tasksWithProjectNames, filter]);
+  }, [tasksWithDetails, filter]);
 
   const handleDelete = () => {
     if (!taskToDelete || !firestore) return;
@@ -142,6 +145,7 @@ export function TaskList({ tasks: initialTasks, projects }: TaskListProps) {
                 <TableHead>Status</TableHead>
                 <TableHead>Priority</TableHead>
                 <TableHead>Project</TableHead>
+                <TableHead>Assigned To</TableHead>
                 <TableHead>Due Date</TableHead>
                 <TableHead className="w-[50px] text-right">Actions</TableHead>
               </TableRow>
@@ -159,6 +163,7 @@ export function TaskList({ tasks: initialTasks, projects }: TaskListProps) {
                     </Badge>
                   </TableCell>
                   <TableCell>{task.projectName}</TableCell>
+                  <TableCell>{task.assignedToName}</TableCell>
                   <TableCell>{new Date(task.dueDate).toLocaleDateString()}</TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
@@ -170,7 +175,7 @@ export function TaskList({ tasks: initialTasks, projects }: TaskListProps) {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <TaskFormDialog task={task} projects={projects}>
+                          <TaskFormDialog task={task} projects={projects} subcontractors={subcontractors}>
                              <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="cursor-pointer">
                                 <Edit className="mr-2 h-4 w-4" /> Edit
                              </DropdownMenuItem>
@@ -185,7 +190,7 @@ export function TaskList({ tasks: initialTasks, projects }: TaskListProps) {
                 </TableRow>
               )) : (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center">
+                  <TableCell colSpan={7} className="h-24 text-center">
                     No tasks found.
                   </TableCell>
                 </TableRow>
