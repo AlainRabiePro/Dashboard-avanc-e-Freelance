@@ -1,0 +1,52 @@
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    match /users/{uid} {
+      allow read, write: if isAuth() && isOwner(uid);
+    }
+
+    match /projects/{projectId} {
+      allow read, write: if isAuth() && isOwner(resource.data.userId);
+      allow create: if isAuth() && isOwner(request.resource.data.userId);
+    }
+
+    match /clients/{clientId} {
+      allow read, write: if isAuth() && isOwner(resource.data.userId);
+      allow create: if isAuth() && isOwner(request.resource.data.userId);
+    }
+
+    match /subcontractors/{subcontractorId} {
+      allow read, write: if isAuth() && isOwner(resource.data.userId);
+      allow create: if isAuth() && isOwner(request.resource.data.userId);
+    }
+
+    match /tasks/{taskId} {
+      allow read, write: if isAuth() && isOwner(resource.data.userId);
+      allow create: if isAuth() && isOwner(request.resource.data.userId);
+    }
+
+    match /scheduleEvents/{eventId} {
+      allow read, write: if isAuth() && isOwner(resource.data.userId);
+      allow create: if isAuth() && isOwner(request.resource.data.userId);
+    }
+
+    match /invoices/{invoiceId} {
+      allow read, write: if isAuth() && isOwner(resource.data.userId);
+      allow create: if isAuth() && isOwner(request.resource.data.userId);
+    }
+
+    match /quotes/{quoteId} {
+      allow read, write: if isAuth() && isOwner(resource.data.userId);
+      allow create: if isAuth() && isOwner(request.resource.data.userId);
+    }
+  }
+}
