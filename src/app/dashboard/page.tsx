@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
 import {
@@ -12,9 +13,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { mockProjects, mockTasks } from "@/lib/data";
 import { Activity, ArrowUpRight, CircleDollarSign, ListChecks } from "lucide-react";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { useCollection, useFirebase, useMemoFirebase, useUser } from "@/firebase";
+import type { Project, Task } from "@/lib/types";
+import { collection, query, where, limit } from "firebase/firestore";
+import { Skeleton } from "@/components/ui/skeleton";
+import { SeedData } from "@/components/dashboard/seed-data";
 
 const chartData = [
   { month: "Jan", revenue: 12000 },
@@ -32,12 +37,56 @@ const chartConfig = {
 };
 
 export default function DashboardPage() {
-  const totalRevenue = chartData.reduce((acc, curr) => acc + curr.revenue, 0);
+  const { firestore, user } = useFirebase();
+  const totalRevenue = useMemo(() => chartData.reduce((acc, curr) => acc + curr.revenue, 0), []);
   const [formattedRevenue, setFormattedRevenue] = useState(totalRevenue.toString());
+
+  const projectsQuery = useMemoFirebase(
+    () => user?.uid && firestore ? query(collection(firestore, "projects"), where("userId", "==", user.uid)) : null,
+    [user?.uid, firestore]
+  );
+  const { data: projects, isLoading: isLoadingProjects } = useCollection<Project>(projectsQuery);
+
+  const pendingTasksQuery = useMemoFirebase(
+    () => user?.uid && firestore ? query(collection(firestore, "tasks"), where("userId", "==", user.uid), where("status", "in", ["Todo", "In Progress"])) : null,
+    [user?.uid, firestore]
+  );
+  const { data: pendingTasksData, isLoading: isLoadingPendingTasks } = useCollection<Task>(pendingTasksQuery);
+
+  const recentTasksQuery = useMemoFirebase(
+    () => user?.uid && firestore ? query(collection(firestore, "tasks"), where("userId", "==", user.uid), limit(4)) : null,
+    [user?.uid, firestore]
+  );
+  const { data: recentTasks, isLoading: isLoadingRecentTasks } = useCollection<Task>(recentTasksQuery);
 
   useEffect(() => {
     setFormattedRevenue(totalRevenue.toLocaleString());
-  }, []);
+  }, [totalRevenue]);
+  
+  const tasksWithProjectNames = useMemo(() => {
+    if (!recentTasks || !projects) return [];
+    return recentTasks.map(task => {
+      const project = projects?.find(p => p.id === task.projectId);
+      return {
+        ...task,
+        projectName: project ? project.name : task.projectId,
+      };
+    });
+  }, [recentTasks, projects]);
+
+  const isLoading = isLoadingProjects || isLoadingPendingTasks || isLoadingRecentTasks;
+
+  const activeProjectsCount = useMemo(() => projects?.filter(p => p.status === 'In Progress').length ?? 0, [projects]);
+  const completedProjectsCount = useMemo(() => projects?.filter(p => p.status === 'Completed').length ?? 0, [projects]);
+  const pendingTasksCount = useMemo(() => pendingTasksData?.length ?? 0, [pendingTasksData]);
+
+  if (isLoading) {
+    return <DashboardSkeleton />;
+  }
+
+  if (!projects || projects.length === 0) {
+    return <SeedData />
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -58,8 +107,8 @@ export default function DashboardPage() {
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mockProjects.filter(p => p.status === 'In Progress').length}</div>
-            <p className="text-xs text-muted-foreground">{mockProjects.length} total projects</p>
+            <div className="text-2xl font-bold">{activeProjectsCount}</div>
+            <p className="text-xs text-muted-foreground">{projects?.length ?? 0} total projects</p>
           </CardContent>
         </Card>
         <Card>
@@ -68,7 +117,7 @@ export default function DashboardPage() {
             <ListChecks className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mockTasks.filter(t => t.status === 'Todo' || t.status === 'In Progress').length}</div>
+            <div className="text-2xl font-bold">{pendingTasksCount}</div>
             <p className="text-xs text-muted-foreground">+5 from last week</p>
           </CardContent>
         </Card>
@@ -78,7 +127,7 @@ export default function DashboardPage() {
             <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mockProjects.filter(p => p.status === 'Completed').length}</div>
+            <div className="text-2xl font-bold">{completedProjectsCount}</div>
             <p className="text-xs text-muted-foreground">This year</p>
           </CardContent>
         </Card>
@@ -131,7 +180,7 @@ export default function DashboardPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {mockTasks.slice(0, 4).map((task) => (
+                {tasksWithProjectNames.slice(0, 4).map((task) => (
                   <TableRow key={task.id}>
                     <TableCell className="font-medium">{task.projectName}</TableCell>
                     <TableCell>{task.title}</TableCell>
@@ -147,4 +196,26 @@ export default function DashboardPage() {
       </div>
     </div>
   );
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card><CardHeader><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><Skeleton className="h-8 w-1/3" /></CardContent></Card>
+        <Card><CardHeader><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><Skeleton className="h-8 w-1/3" /></CardContent></Card>
+        <Card><CardHeader><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><Skeleton className="h-8 w-1/3" /></CardContent></Card>
+        <Card><CardHeader><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><Skeleton className="h-8 w-1/3" /></CardContent></Card>
+      </div>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card><CardHeader><Skeleton className="h-6 w-1/2" /></CardHeader><CardContent><Skeleton className="h-64 w-full" /></CardContent></Card>
+        <Card><CardHeader><Skeleton className="h-6 w-1/2" /></CardHeader><CardContent className="space-y-2">
+          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-8 w-full" />
+        </CardContent></Card>
+      </div>
+    </div>
+  )
 }
