@@ -23,23 +23,25 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-
-const menuItems = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/dashboard/projects", label: "Projects", icon: FolderKanban },
-  { href: "/dashboard/tasks", label: "Tasks", icon: ListTodo },
-  { href: "/dashboard/clients", label: "Clients", icon: Users },
-  { href: "/dashboard/subcontractors", label: "Subcontractors", icon: UserCog },
-  { href: "/dashboard/schedule", label: "Schedule", icon: Calendar },
-];
-
-const financialItems = [
-  { href: "/dashboard/invoices", label: "Invoices", icon: FileText },
-  { href: "/dashboard/quotes", label: "Quotes", icon: FileSignature },
-];
+import { useLanguage } from "@/context/language-context";
 
 export function SidebarNavigation() {
   const pathname = usePathname();
+  const { t } = useLanguage();
+
+  const menuItems = [
+    { href: "/dashboard", label: t("sidebar.dashboard"), icon: LayoutDashboard },
+    { href: "/dashboard/projects", label: t("sidebar.projects"), icon: FolderKanban },
+    { href: "/dashboard/tasks", label: t("sidebar.tasks"), icon: ListTodo },
+    { href: "/dashboard/clients", label: t("sidebar.clients"), icon: Users },
+    { href: "/dashboard/subcontractors", label: t("sidebar.subcontractors"), icon: UserCog },
+    { href: "/dashboard/schedule", label: t("sidebar.schedule"), icon: Calendar },
+  ];
+
+  const financialItems = [
+    { href: "/dashboard/invoices", label: t("sidebar.invoices"), icon: FileText },
+    { href: "/dashboard/quotes", label: t("sidebar.quotes"), icon: FileSignature },
+  ];
 
   const isActive = (path: string) => {
     return pathname === path;
@@ -92,11 +94,11 @@ export function SidebarNavigation() {
             <SidebarMenuButton
               asChild
               isActive={isActive("/dashboard/settings")}
-              tooltip="Settings"
+              tooltip={t("sidebar.settings")}
             >
               <Link href="/dashboard/settings">
                 <Settings />
-                <span>Settings</span>
+                <span>{t("sidebar.settings")}</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

@@ -1,0 +1,39 @@
+{
+  "settings": {
+    "title": "Paramètres",
+    "description": "Gérez les paramètres de votre compte, vos préférences et les traductions.",
+    "appearance": {
+      "title": "Apparence",
+      "description": "Personnalisez l'apparence de l'application. Basculez entre le mode clair et le mode sombre.",
+      "theme": "Thème"
+    },
+    "language": {
+      "title": "Langue",
+      "description": "Choisissez la langue de l'interface de l'application.",
+      "select": "Langue"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "description": "Gérez la manière dont vous recevez nos notifications.",
+      "email": {
+        "label": "Notifications par e-mail",
+        "description": "Recevez des mises à jour sur vos projets et l'activité de votre compte."
+      },
+      "marketing": {
+        "label": "E-mails marketing",
+        "description": "Recevez des nouvelles, des mises à jour de fonctionnalités et des offres spéciales."
+      }
+    }
+  },
+  "sidebar": {
+    "dashboard": "Tableau de bord",
+    "projects": "Projets",
+    "tasks": "Tâches",
+    "clients": "Clients",
+    "subcontractors": "Sous-traitants",
+    "schedule": "Calendrier",
+    "invoices": "Factures",
+    "quotes": "Devis",
+    "settings": "Paramètres"
+  }
+}

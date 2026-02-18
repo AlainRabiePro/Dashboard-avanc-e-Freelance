@@ -29,10 +29,12 @@ import { doc, serverTimestamp } from 'firebase/firestore';
 import type { User } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useLanguage, availableLanguages, Language } from '@/context/language-context';
 
 export default function SettingsPage() {
   const { user, firestore } = useFirebase();
   const { toast } = useToast();
+  const { language, setLanguage, t } = useLanguage();
 
   const userProfileRef = useMemoFirebase(
     () => (user?.uid && firestore ? doc(firestore, 'users', user.uid) : null),
@@ -58,28 +60,27 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-medium">Settings</h3>
+        <h3 className="text-lg font-medium">{t('settings.title')}</h3>
         <p className="text-sm text-muted-foreground">
-          Manage your account settings, preferences, and translations.
+          {t('settings.description')}
         </p>
       </div>
       <Separator />
 
       <Accordion type="single" collapsible className="w-full" defaultValue="item-3">
         <AccordionItem value="item-1">
-          <AccordionTrigger>Appearance</AccordionTrigger>
+          <AccordionTrigger>{t('settings.appearance.title')}</AccordionTrigger>
           <AccordionContent>
             <Card>
               <CardHeader>
-                <CardTitle>Appearance</CardTitle>
+                <CardTitle>{t('settings.appearance.title')}</CardTitle>
                 <CardDescription>
-                  Customize the appearance of the app. Switch between light and
-                  dark mode.
+                  {t('settings.appearance.description')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium">Theme</p>
+                  <p className="text-sm font-medium">{t('settings.appearance.theme')}</p>
                   <ThemeToggle />
                 </div>
               </CardContent>
@@ -87,27 +88,27 @@ export default function SettingsPage() {
           </AccordionContent>
         </AccordionItem>
         <AccordionItem value="item-2">
-          <AccordionTrigger>Language</AccordionTrigger>
+          <AccordionTrigger>{t('settings.language.title')}</AccordionTrigger>
           <AccordionContent>
             <Card>
               <CardHeader>
-                <CardTitle>Language</CardTitle>
+                <CardTitle>{t('settings.language.title')}</CardTitle>
                 <CardDescription>
-                  Choose the language for the application interface.
+                  {t('settings.language.description')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid gap-4">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="language-select">Language</Label>
-                    <Select defaultValue="en">
+                    <Label htmlFor="language-select">{t('settings.language.select')}</Label>
+                    <Select value={language} onValueChange={(value) => setLanguage(value as Language)}>
                       <SelectTrigger id="language-select" className="w-[180px]">
                         <SelectValue placeholder="Select language" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="en">English</SelectItem>
-                        <SelectItem value="fr">Français</SelectItem>
-                        <SelectItem value="es">Español</SelectItem>
+                        {Object.entries(availableLanguages).map(([code, name]) => (
+                            <SelectItem key={code} value={code}>{name}</SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -117,13 +118,13 @@ export default function SettingsPage() {
           </AccordionContent>
         </AccordionItem>
         <AccordionItem value="item-3">
-          <AccordionTrigger>Notifications</AccordionTrigger>
+          <AccordionTrigger>{t('settings.notifications.title')}</AccordionTrigger>
           <AccordionContent>
             <Card>
               <CardHeader>
-                <CardTitle>Notifications</CardTitle>
+                <CardTitle>{t('settings.notifications.title')}</CardTitle>
                 <CardDescription>
-                  Manage how you receive notifications from us.
+                  {t('settings.notifications.description')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -136,9 +137,9 @@ export default function SettingsPage() {
                   <>
                     <div className="flex items-center justify-between rounded-lg border p-4">
                         <div className="space-y-0.5">
-                            <Label htmlFor="email-notifications">Email Notifications</Label>
+                            <Label htmlFor="email-notifications">{t('settings.notifications.email.label')}</Label>
                             <p className="text-sm text-muted-foreground">
-                                Receive updates about your projects and account activity.
+                                {t('settings.notifications.email.description')}
                             </p>
                         </div>
                         <Switch 
@@ -149,9 +150,9 @@ export default function SettingsPage() {
                     </div>
                      <div className="flex items-center justify-between rounded-lg border p-4">
                         <div className="space-y-0.5">
-                            <Label htmlFor="marketing-emails">Marketing Emails</Label>
+                            <Label htmlFor="marketing-emails">{t('settings.notifications.marketing.label')}</Label>
                             <p className="text-sm text-muted-foreground">
-                                Receive news, feature updates, and special offers.
+                                {t('settings.notifications.marketing.description')}
                             </p>
                         </div>
                         <Switch 
