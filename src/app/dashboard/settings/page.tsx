@@ -15,8 +15,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { ProfileForm } from './profile-form';
-import { PasswordForm } from './password-form';
 import {
   Select,
   SelectContent,
@@ -40,39 +38,6 @@ export default function SettingsPage() {
 
       <Accordion type="single" collapsible className="w-full">
         <AccordionItem value="item-1">
-          <AccordionTrigger>Profile</AccordionTrigger>
-          <AccordionContent>
-            <Card>
-              <CardHeader>
-                <CardTitle>Profile</CardTitle>
-                <CardDescription>
-                  Update your personal information. Your email address cannot be
-                  changed.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ProfileForm />
-              </CardContent>
-            </Card>
-          </AccordionContent>
-        </AccordionItem>
-        <AccordionItem value="item-2">
-          <AccordionTrigger>Password</AccordionTrigger>
-          <AccordionContent>
-            <Card>
-              <CardHeader>
-                <CardTitle>Password</CardTitle>
-                <CardDescription>
-                  Change your password. Make sure to choose a strong one.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <PasswordForm />
-              </CardContent>
-            </Card>
-          </AccordionContent>
-        </AccordionItem>
-        <AccordionItem value="item-3">
           <AccordionTrigger>Appearance</AccordionTrigger>
           <AccordionContent>
             <Card>
@@ -92,7 +57,7 @@ export default function SettingsPage() {
             </Card>
           </AccordionContent>
         </AccordionItem>
-        <AccordionItem value="item-4">
+        <AccordionItem value="item-2">
           <AccordionTrigger>Language</AccordionTrigger>
           <AccordionContent>
             <Card>
@@ -122,7 +87,7 @@ export default function SettingsPage() {
             </Card>
           </AccordionContent>
         </AccordionItem>
-        <AccordionItem value="item-5">
+        <AccordionItem value="item-3">
           <AccordionTrigger>Notifications</AccordionTrigger>
           <AccordionContent>
             <Card>
