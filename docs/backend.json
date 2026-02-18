@@ -48,6 +48,14 @@
           "type": "string",
           "description": "Timestamp indicating the last time the user profile was updated.",
           "format": "date-time"
+        },
+        "emailNotifications": {
+          "type": "boolean",
+          "description": "Indicates if the user has opted in to receive email notifications about projects and account activity."
+        },
+        "marketingEmails": {
+          "type": "boolean",
+          "description": "Indicates if the user has opted in to receive marketing emails."
         }
       },
       "required": [

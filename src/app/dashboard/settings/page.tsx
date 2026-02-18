@@ -24,8 +24,37 @@ import {
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { useFirebase, useDoc, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
+import { doc, serverTimestamp } from 'firebase/firestore';
+import type { User } from '@/lib/types';
+import { useToast } from '@/hooks/use-toast';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function SettingsPage() {
+  const { user, firestore } = useFirebase();
+  const { toast } = useToast();
+
+  const userProfileRef = useMemoFirebase(
+    () => (user?.uid && firestore ? doc(firestore, 'users', user.uid) : null),
+    [user?.uid, firestore]
+  );
+  const { data: userProfile, isLoading: isLoadingProfile } = useDoc<User>(userProfileRef);
+
+  const handleNotificationChange = (setting: 'emailNotifications' | 'marketingEmails', value: boolean) => {
+    if (!user || !firestore) return;
+
+    const userRef = doc(firestore, 'users', user.uid);
+    updateDocumentNonBlocking(userRef, {
+      [setting]: value,
+      updatedAt: serverTimestamp(),
+    });
+
+    toast({
+      title: 'Settings Updated',
+      description: 'Your notification preferences have been saved.',
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -36,7 +65,7 @@ export default function SettingsPage() {
       </div>
       <Separator />
 
-      <Accordion type="single" collapsible className="w-full">
+      <Accordion type="single" collapsible className="w-full" defaultValue="item-3">
         <AccordionItem value="item-1">
           <AccordionTrigger>Appearance</AccordionTrigger>
           <AccordionContent>
@@ -98,24 +127,41 @@ export default function SettingsPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center justify-between rounded-lg border p-4">
-                    <div className="space-y-0.5">
-                        <Label>Email Notifications</Label>
-                        <p className="text-sm text-muted-foreground">
-                            Receive updates about your projects and account activity.
-                        </p>
+                {isLoadingProfile ? (
+                  <>
+                    <Skeleton className="h-20 w-full" />
+                    <Skeleton className="h-20 w-full" />
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                            <Label htmlFor="email-notifications">Email Notifications</Label>
+                            <p className="text-sm text-muted-foreground">
+                                Receive updates about your projects and account activity.
+                            </p>
+                        </div>
+                        <Switch 
+                          id="email-notifications"
+                          checked={userProfile?.emailNotifications ?? false}
+                          onCheckedChange={(value) => handleNotificationChange('emailNotifications', value)}
+                        />
                     </div>
-                    <Switch />
-                </div>
-                 <div className="flex items-center justify-between rounded-lg border p-4">
-                    <div className="space-y-0.5">
-                        <Label>Marketing Emails</Label>
-                        <p className="text-sm text-muted-foreground">
-                            Receive news, feature updates, and special offers.
-                        </p>
+                     <div className="flex items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                            <Label htmlFor="marketing-emails">Marketing Emails</Label>
+                            <p className="text-sm text-muted-foreground">
+                                Receive news, feature updates, and special offers.
+                            </p>
+                        </div>
+                        <Switch 
+                          id="marketing-emails"
+                          checked={userProfile?.marketingEmails ?? false}
+                          onCheckedChange={(value) => handleNotificationChange('marketingEmails', value)}
+                        />
                     </div>
-                    <Switch />
-                </div>
+                  </>
+                )}
               </CardContent>
             </Card>
           </AccordionContent>

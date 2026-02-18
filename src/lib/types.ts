@@ -3,10 +3,14 @@ export type User = {
   id: string;
   email: string;
   name: string;
-  company: string;
-  phone: string;
-  avatar: string;
+  company?: string;
+  phone?: string;
+  avatar?: string;
   role: 'freelancer';
+  emailNotifications?: boolean;
+  marketingEmails?: boolean;
+  createdAt?: any;
+  updatedAt?: any;
 };
 
 export type Project = {
