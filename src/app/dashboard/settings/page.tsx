@@ -1,8 +1,6 @@
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ProfileForm } from "./profile-form";
-import { PasswordForm } from "./password-form";
 import { Separator } from "@/components/ui/separator";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -16,28 +14,6 @@ export default function SettingsPage() {
         </p>
       </div>
       <Separator />
-      <Card>
-        <CardHeader>
-          <CardTitle>Profile</CardTitle>
-          <CardDescription>
-            Update your personal information. Your email address cannot be changed.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ProfileForm />
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Password</CardTitle>
-          <CardDescription>
-            Change your password. Make sure to choose a strong one.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <PasswordForm />
-        </CardContent>
-      </Card>
       <Card>
         <CardHeader>
           <CardTitle>Appearance</CardTitle>
