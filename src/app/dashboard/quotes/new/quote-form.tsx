@@ -21,7 +21,6 @@ import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { mockProjects } from "@/lib/data";
 import { generateInvoiceQuoteDescription } from "@/ai/flows/generate-invoice-quote-description";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";

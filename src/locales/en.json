@@ -1,3 +1,4 @@
+
 {
   "settings": {
     "title": "Settings",
@@ -23,6 +24,12 @@
         "label": "Marketing Emails",
         "description": "Receive news, feature updates, and special offers."
       }
+    },
+    "toast": {
+      "updated": {
+        "title": "Settings Updated",
+        "description": "Your notification preferences have been saved."
+      }
     }
   },
   "sidebar": {
@@ -35,5 +42,70 @@
     "invoices": "Invoices",
     "quotes": "Quotes",
     "settings": "Settings"
+  },
+  "common": {
+    "actions": "Actions",
+    "edit": "Edit",
+    "delete": "Delete",
+    "create": "Create",
+    "cancel": "Cancel",
+    "name": "Name",
+    "status": "Status",
+    "email": "Email",
+    "phone": "Phone",
+    "company": "Company",
+    "description": "Description",
+    "notes": "Notes",
+    "areYouSure": "Are you absolutely sure?",
+    "undoWarning": "This action cannot be undone.",
+    "permanentlyDelete": "This will permanently delete the"
+  },
+  "auth": {
+    "logout": {
+      "button": "Log out",
+      "successTitle": "Logged Out",
+      "successDescription": "You have been successfully logged out.",
+      "errorTitle": "Logout Failed",
+      "errorDescription": "An error occurred during logout."
+    }
+  },
+  "dashboard": {
+    "totalRevenue": {
+      "title": "Total Revenue"
+    },
+    "fromLastMonth": "% from last month",
+    "activeProjects": {
+      "title": "Active Projects"
+    },
+    "totalProjects": "total projects",
+    "pendingTasks": {
+      "title": "Pending Tasks",
+      "description": "Tasks in 'Todo' or 'In Progress'"
+    },
+    "completedProjects": {
+      "title": "Completed Projects"
+    },
+    "thisYear": "This year",
+    "revenueOverview": {
+      "title": "Revenue Overview"
+    },
+    "recentActivity": {
+      "title": "Recent Activity"
+    }
+  },
+  "clients": {
+    "title": "Clients",
+    "description": "Manage your clients and prospects.",
+    "create": "Create Client",
+    "edit": "Edit Client",
+    "empty": "No clients found.",
+    "createFirst": "Create your first client!",
+    "deleteWarning": "client",
+    "toast": {
+      "deleted": {
+        "title": "Client Deleted",
+        "description": "Client has been deleted:"
+      }
+    }
   }
 }

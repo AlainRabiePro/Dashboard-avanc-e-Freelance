@@ -43,6 +43,7 @@ import type { Client } from '@/lib/types';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useLanguage } from "@/context/language-context";
 
 function getStatusVariant(status: Client['status']) {
   switch (status) {
@@ -60,6 +61,7 @@ function getStatusVariant(status: Client['status']) {
 export default function ClientsPage() {
   const { firestore, user } = useFirebase();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [clientToDelete, setClientToDelete] = useState<Client | null>(null);
 
   const clientsQuery = useMemoFirebase(
@@ -73,8 +75,8 @@ export default function ClientsPage() {
     const clientRef = doc(firestore, 'clients', clientToDelete.id);
     deleteDocumentNonBlocking(clientRef);
     toast({
-      title: "Client Deleted",
-      description: `Client "${clientToDelete.name}" has been deleted.`,
+      title: t('clients.toast.deleted.title'),
+      description: `${t('clients.toast.deleted.description')} "${clientToDelete.name}".`,
     });
     setClientToDelete(null);
   };
@@ -88,15 +90,15 @@ export default function ClientsPage() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle>Clients</CardTitle>
+            <CardTitle>{t('clients.title')}</CardTitle>
             <CardDescription>
-              Manage your clients and prospects.
+              {t('clients.description')}
             </CardDescription>
           </div>
           <Link href="/dashboard/clients/new" passHref>
             <Button>
               <PlusCircle className="mr-2 h-4 w-4" />
-              Create Client
+              {t('clients.create')}
             </Button>
           </Link>
         </CardHeader>
@@ -104,12 +106,12 @@ export default function ClientsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Company</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Phone</TableHead>
-                <TableHead className="w-[100px] text-right">Actions</TableHead>
+                <TableHead>{t('common.name')}</TableHead>
+                <TableHead>{t('common.company')}</TableHead>
+                <TableHead>{t('common.status')}</TableHead>
+                <TableHead>{t('common.email')}</TableHead>
+                <TableHead>{t('common.phone')}</TableHead>
+                <TableHead className="w-[100px] text-right">{t('common.actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -134,11 +136,11 @@ export default function ClientsPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem asChild><Link href={`/dashboard/clients/${client.id}/edit`}>Edit</Link></DropdownMenuItem>
+                          <DropdownMenuLabel>{t('common.actions')}</DropdownMenuLabel>
+                          <DropdownMenuItem asChild><Link href={`/dashboard/clients/${client.id}/edit`}>{t('common.edit')}</Link></DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem onClick={() => setClientToDelete(client)} className="text-destructive focus:bg-destructive/10 focus:text-destructive">
-                            <Trash2 className="mr-2 h-4 w-4" /> Delete
+                            <Trash2 className="mr-2 h-4 w-4" /> {t('common.delete')}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -148,7 +150,7 @@ export default function ClientsPage() {
               ) : (
                 <TableRow>
                   <TableCell colSpan={6} className="h-24 text-center">
-                    No clients found. <Link href="/dashboard/clients/new" className="text-primary underline">Create your first client!</Link>
+                    {t('clients.empty')} <Link href="/dashboard/clients/new" className="text-primary underline">{t('clients.createFirst')}</Link>
                   </TableCell>
                 </TableRow>
               )}
@@ -159,15 +161,15 @@ export default function ClientsPage() {
       <AlertDialog open={!!clientToDelete} onOpenChange={(open) => !open && setClientToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogTitle>{t('common.areYouSure')}</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the client <span className="font-bold">{clientToDelete?.name}</span>.
+              {t('common.undoWarning')} {t('common.permanentlyDelete')} {t('clients.deleteWarning')} <span className="font-bold">{clientToDelete?.name}</span>.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className={buttonVariants({ variant: "destructive" })}>
-              Delete
+              {t('common.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

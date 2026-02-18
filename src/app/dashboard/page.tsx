@@ -21,6 +21,7 @@ import { collection, query, where, limit } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SeedData } from "@/components/dashboard/seed-data";
 import { subMonths, startOfMonth, endOfMonth, format } from "date-fns";
+import { useLanguage } from "@/context/language-context";
 
 const chartConfig = {
   revenue: {
@@ -31,6 +32,7 @@ const chartConfig = {
 
 export default function DashboardPage() {
   const { firestore, user } = useFirebase();
+  const { t } = useLanguage();
 
   const projectsQuery = useMemoFirebase(
     () => user?.uid && firestore ? query(collection(firestore, "projects"), where("userId", "==", user.uid)) : null,
@@ -140,44 +142,44 @@ export default function DashboardPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('dashboard.totalRevenue.title')}</CardTitle>
             <CircleDollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">${totalRevenue.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
-              {revenueChange >= 0 ? '+' : ''}{revenueChange.toFixed(1)}% from last month
+              {revenueChange >= 0 ? '+' : ''}{revenueChange.toFixed(1)}% {t('dashboard.fromLastMonth')}
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Projects</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('dashboard.activeProjects.title')}</CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{activeProjectsCount}</div>
-            <p className="text-xs text-muted-foreground">{projects?.length ?? 0} total projects</p>
+            <p className="text-xs text-muted-foreground">{projects?.length ?? 0} {t('dashboard.totalProjects')}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Tasks</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('dashboard.pendingTasks.title')}</CardTitle>
             <ListChecks className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{pendingTasksCount}</div>
-            <p className="text-xs text-muted-foreground">+5 from last week</p>
+            <p className="text-xs text-muted-foreground">{t('dashboard.pendingTasks.description')}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Completed Projects</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('dashboard.completedProjects.title')}</CardTitle>
             <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{completedProjectsCount}</div>
-            <p className="text-xs text-muted-foreground">This year</p>
+            <p className="text-xs text-muted-foreground">{t('dashboard.thisYear')}</p>
           </CardContent>
         </Card>
       </div>
@@ -185,7 +187,7 @@ export default function DashboardPage() {
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Revenue Overview</CardTitle>
+            <CardTitle>{t('dashboard.revenueOverview.title')}</CardTitle>
           </CardHeader>
           <CardContent>
             <ChartContainer config={chartConfig} className="h-64 w-full">
@@ -217,15 +219,15 @@ export default function DashboardPage() {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
+            <CardTitle>{t('dashboard.recentActivity.title')}</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Project</TableHead>
-                  <TableHead>Task</TableHead>
-                  <TableHead className="text-right">Status</TableHead>
+                  <TableHead>{t('sidebar.projects')}</TableHead>
+                  <TableHead>{t('sidebar.tasks')}</TableHead>
+                  <TableHead className="text-right">{t('common.status')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

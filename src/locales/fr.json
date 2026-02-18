@@ -1,3 +1,4 @@
+
 {
   "settings": {
     "title": "Paramètres",
@@ -23,6 +24,12 @@
         "label": "E-mails marketing",
         "description": "Recevez des nouvelles, des mises à jour de fonctionnalités et des offres spéciales."
       }
+    },
+    "toast": {
+      "updated": {
+        "title": "Paramètres mis à jour",
+        "description": "Vos préférences de notification ont été enregistrées."
+      }
     }
   },
   "sidebar": {
@@ -35,5 +42,70 @@
     "invoices": "Factures",
     "quotes": "Devis",
     "settings": "Paramètres"
+  },
+  "common": {
+    "actions": "Actions",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "create": "Créer",
+    "cancel": "Annuler",
+    "name": "Nom",
+    "status": "Statut",
+    "email": "E-mail",
+    "phone": "Téléphone",
+    "company": "Entreprise",
+    "description": "Description",
+    "notes": "Remarques",
+    "areYouSure": "Êtes-vous absolument sûr ?",
+    "undoWarning": "Cette action ne peut pas être annulée.",
+    "permanentlyDelete": "Cela supprimera définitivement le"
+  },
+  "auth": {
+    "logout": {
+      "button": "Se déconnecter",
+      "successTitle": "Déconnecté",
+      "successDescription": "Vous avez été déconnecté avec succès.",
+      "errorTitle": "Échec de la déconnexion",
+      "errorDescription": "Une erreur s'est produite lors de la déconnexion."
+    }
+  },
+  "dashboard": {
+    "totalRevenue": {
+      "title": "Revenu total"
+    },
+    "fromLastMonth": "% par rapport au mois dernier",
+    "activeProjects": {
+      "title": "Projets actifs"
+    },
+    "totalProjects": "projets au total",
+    "pendingTasks": {
+      "title": "Tâches en attente",
+      "description": "Tâches 'À faire' ou 'En cours'"
+    },
+    "completedProjects": {
+      "title": "Projets terminés"
+    },
+    "thisYear": "Cette année",
+    "revenueOverview": {
+      "title": "Aperçu des revenus"
+    },
+    "recentActivity": {
+      "title": "Activité récente"
+    }
+  },
+  "clients": {
+    "title": "Clients",
+    "description": "Gérez vos clients et prospects.",
+    "create": "Créer un client",
+    "edit": "Modifier le client",
+    "empty": "Aucun client trouvé.",
+    "createFirst": "Créez votre premier client !",
+    "deleteWarning": "client",
+    "toast": {
+      "deleted": {
+        "title": "Client supprimé",
+        "description": "Le client a été supprimé :"
+      }
+    }
   }
 }

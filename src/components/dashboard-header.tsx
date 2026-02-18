@@ -9,32 +9,34 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { Search, LogOut, Settings, User } from "lucide-react";
+import { LogOut, Settings } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { useFirebase } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
+import Link from "next/link";
+import { useLanguage } from "@/context/language-context";
 
 export function DashboardHeader() {
   const { user, auth } = useFirebase();
   const router = useRouter();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const handleLogout = async () => {
     try {
       await signOut(auth);
       toast({
-        title: "Logged Out",
-        description: "You have been successfully logged out.",
+        title: t('auth.logout.successTitle'),
+        description: t('auth.logout.successDescription'),
       });
       router.push('/login');
     } catch (error) {
       toast({
-        title: "Logout Failed",
-        description: "An error occurred during logout.",
+        title: t('auth.logout.errorTitle'),
+        description: t('auth.logout.errorDescription'),
         variant: "destructive",
       });
     }
@@ -54,17 +56,7 @@ export function DashboardHeader() {
       <div className="flex items-center gap-2 md:hidden">
         <SidebarTrigger />
       </div>
-      <div className="w-full flex-1">
-        <form>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              className="w-full appearance-none bg-background pl-9 md:w-2/3 lg:w-1/3"
-              placeholder="Search projects, clients, invoices..."
-            />
-          </div>
-        </form>
-      </div>
+      <div className="w-full flex-1" />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button className="rounded-full focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
@@ -84,18 +76,16 @@ export function DashboardHeader() {
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>
-            <User className="mr-2 h-4 w-4" />
-            <span>Profile</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <Settings className="mr-2 h-4 w-4" />
-            <span>Settings</span>
+          <DropdownMenuItem asChild>
+            <Link href="/dashboard/settings">
+              <Settings className="mr-2 h-4 w-4" />
+              <span>{t('sidebar.settings')}</span>
+            </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleLogout}>
             <LogOut className="mr-2 h-4 w-4" />
-            <span>Log out</span>
+            <span>{t('auth.logout.button')}</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

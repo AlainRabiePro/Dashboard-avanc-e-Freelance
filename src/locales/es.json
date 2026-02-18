@@ -1,3 +1,4 @@
+
 {
   "settings": {
     "title": "Configuración",
@@ -23,6 +24,12 @@
         "label": "Correos de marketing",
         "description": "Recibe noticias, actualizaciones de funciones y ofertas especiales."
       }
+    },
+    "toast": {
+      "updated": {
+        "title": "Configuración actualizada",
+        "description": "Tus preferencias de notificación han sido guardadas."
+      }
     }
   },
   "sidebar": {
@@ -35,5 +42,70 @@
     "invoices": "Facturas",
     "quotes": "Cotizaciones",
     "settings": "Configuración"
+  },
+  "common": {
+    "actions": "Acciones",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "create": "Crear",
+    "cancel": "Cancelar",
+    "name": "Nombre",
+    "status": "Estado",
+    "email": "Correo electrónico",
+    "phone": "Teléfono",
+    "company": "Compañía",
+    "description": "Descripción",
+    "notes": "Notas",
+    "areYouSure": "¿Estás absolutamente seguro?",
+    "undoWarning": "Esta acción no se puede deshacer.",
+    "permanentlyDelete": "Esto eliminará permanentemente el"
+  },
+  "auth": {
+    "logout": {
+      "button": "Cerrar sesión",
+      "successTitle": "Sesión cerrada",
+      "successDescription": "Has cerrado sesión correctamente.",
+      "errorTitle": "Error al cerrar sesión",
+      "errorDescription": "Ocurrió un error al cerrar la sesión."
+    }
+  },
+  "dashboard": {
+    "totalRevenue": {
+      "title": "Ingresos totales"
+    },
+    "fromLastMonth": "% desde el mes pasado",
+    "activeProjects": {
+      "title": "Proyectos activos"
+    },
+    "totalProjects": "proyectos en total",
+    "pendingTasks": {
+      "title": "Tareas pendientes",
+      "description": "Tareas en 'Por hacer' o 'En progreso'"
+    },
+    "completedProjects": {
+      "title": "Proyectos completados"
+    },
+    "thisYear": "Este año",
+    "revenueOverview": {
+      "title": "Resumen de ingresos"
+    },
+    "recentActivity": {
+      "title": "Actividad reciente"
+    }
+  },
+  "clients": {
+    "title": "Clientes",
+    "description": "Administra tus clientes y prospectos.",
+    "create": "Crear Cliente",
+    "edit": "Editar Cliente",
+    "empty": "No se encontraron clientes.",
+    "createFirst": "¡Crea tu primer cliente!",
+    "deleteWarning": "cliente",
+    "toast": {
+      "deleted": {
+        "title": "Cliente eliminado",
+        "description": "El cliente ha sido eliminado:"
+      }
+    }
   }
 }
