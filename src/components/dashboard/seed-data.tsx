@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { doc } from 'firebase/firestore';
 import { useFirebase } from '@/firebase';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { mockProjects, mockTasks } from '@/lib/data';
+import { mockProjects, mockTasks, mockClients, mockInvoices } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,22 +30,30 @@ export function SeedData() {
     setIsSeeding(true);
     toast({
       title: 'Seeding Database',
-      description: 'Adding sample projects and tasks...',
+      description: 'Adding sample clients, projects, tasks, and invoices...',
     });
 
     try {
       const userId = user.uid;
       const projectsCol = collection(firestore, 'projects');
       const tasksCol = collection(firestore, 'tasks');
+      const clientsCol = collection(firestore, 'clients');
+      const invoicesCol = collection(firestore, 'invoices');
+
+      for (const client of mockClients) {
+        await addDocumentNonBlocking(clientsCol, { ...client, id: undefined, userId });
+      }
 
       for (const project of mockProjects) {
-        // We use addDocumentNonBlocking which will generate a new ID
         await addDocumentNonBlocking(projectsCol, { ...project, id: undefined, userId });
       }
 
       for (const task of mockTasks) {
-        // We use addDocumentNonBlocking which will generate a new ID
         await addDocumentNonBlocking(tasksCol, { ...task, id: undefined, userId });
+      }
+
+      for (const invoice of mockInvoices) {
+        await addDocumentNonBlocking(invoicesCol, { ...invoice, id: undefined, userId });
       }
 
       toast({
@@ -96,3 +104,5 @@ export function SeedData() {
     </Card>
   );
 }
+
+    

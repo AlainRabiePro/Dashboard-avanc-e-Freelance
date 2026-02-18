@@ -1,5 +1,5 @@
 
-import { Invoice, Project, Task } from './types';
+import { Invoice, Project, Task, Client } from './types';
 
 export const mockUser = {
   uid: '12345',
@@ -10,6 +10,49 @@ export const mockUser = {
   avatar: 'user-avatar',
   role: 'freelancer' as const,
 };
+
+export const mockClients: Client[] = [
+  {
+    id: 'client-1',
+    userId: '12345',
+    name: 'Innovate Inc.',
+    company: 'Innovate Inc.',
+    email: 'contact@innovateinc.com',
+    phone: '555-0101',
+    status: 'Active',
+    notes: 'Long-term partnership for platform development.',
+  },
+  {
+    id: 'client-2',
+    userId: '12345',
+    name: 'StartupX',
+    company: 'StartupX',
+    email: 'hello@startupx.io',
+    phone: '555-0102',
+    status: 'Active',
+    notes: 'Completed mobile app design project. Potential for future work.',
+  },
+  {
+    id: 'client-3',
+    userId: '12345',
+    name: 'Growth Co.',
+    company: 'Growth Co.',
+    email: 'projects@growthco.net',
+    phone: '555-0103',
+    status: 'Prospect',
+    notes: 'In talks for a full website redesign and marketing campaign.',
+  },
+   {
+    id: 'client-4',
+    userId: '12345',
+    name: 'Random Corp',
+    company: 'Random Corp',
+    email: 'info@randomcorp.biz',
+    phone: '555-0104',
+    status: 'Inactive',
+    notes: 'One-off consulting engagement in Q1.',
+  },
+];
 
 export const mockProjects: Project[] = [
   {
@@ -147,3 +190,5 @@ export const mockInvoices: Invoice[] = [
     items: [{ description: 'Frontend Development Milestone', quantity: 1, unitPrice: 5000, total: 5000 }],
   },
 ];
+
+    

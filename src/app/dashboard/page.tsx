@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
 import {
@@ -15,20 +15,13 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Activity, ArrowUpRight, CircleDollarSign, ListChecks } from "lucide-react";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { useCollection, useFirebase, useMemoFirebase, useUser } from "@/firebase";
-import type { Project, Task } from "@/lib/types";
+import { useCollection, useFirebase, useMemoFirebase } from "@/firebase";
+import type { Project, Task, Invoice } from "@/lib/types";
 import { collection, query, where, limit } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SeedData } from "@/components/dashboard/seed-data";
+import { subMonths, startOfMonth, endOfMonth, format } from "date-fns";
 
-const chartData = [
-  { month: "Jan", revenue: 12000 },
-  { month: "Feb", revenue: 15000 },
-  { month: "Mar", revenue: 17500 },
-  { month: "Apr", revenue: 13000 },
-  { month: "May", revenue: 22000 },
-  { month: "Jun", revenue: 19000 },
-];
 const chartConfig = {
   revenue: {
     label: "Revenue",
@@ -38,8 +31,6 @@ const chartConfig = {
 
 export default function DashboardPage() {
   const { firestore, user } = useFirebase();
-  const totalRevenue = useMemo(() => chartData.reduce((acc, curr) => acc + curr.revenue, 0), []);
-  const [formattedRevenue, setFormattedRevenue] = useState(totalRevenue.toString());
 
   const projectsQuery = useMemoFirebase(
     () => user?.uid && firestore ? query(collection(firestore, "projects"), where("userId", "==", user.uid)) : null,
@@ -58,10 +49,66 @@ export default function DashboardPage() {
     [user?.uid, firestore]
   );
   const { data: recentTasks, isLoading: isLoadingRecentTasks } = useCollection<Task>(recentTasksQuery);
+  
+  const paidInvoicesQuery = useMemoFirebase(
+    () => user?.uid && firestore ? query(collection(firestore, "invoices"), where("userId", "==", user.uid), where("status", "==", "Paid")) : null,
+    [user?.uid, firestore]
+  );
+  const { data: paidInvoices, isLoading: isLoadingInvoices } = useCollection<Invoice>(paidInvoicesQuery);
 
-  useEffect(() => {
-    setFormattedRevenue(totalRevenue.toLocaleString());
-  }, [totalRevenue]);
+  const { totalRevenue, revenueChange, chartData } = useMemo(() => {
+    if (!paidInvoices) return { totalRevenue: 0, revenueChange: 0, chartData: [] };
+
+    const toDate = (date: any): Date => {
+      if (!date) return new Date();
+      if (date.toDate) return date.toDate();
+      return new Date(date);
+    };
+
+    const total = paidInvoices.reduce((acc, invoice) => acc + invoice.amount, 0);
+
+    const now = new Date();
+    const thisMonthStart = startOfMonth(now);
+    const lastMonthStart = startOfMonth(subMonths(now, 1));
+    const lastMonthEnd = endOfMonth(lastMonthStart);
+
+    let thisMonthRevenue = 0;
+    let lastMonthRevenue = 0;
+    
+    const monthlyRevenue: { [key: string]: number } = {};
+
+    paidInvoices.forEach(invoice => {
+      const issueDate = toDate(invoice.issueDate);
+
+      if (issueDate >= thisMonthStart) {
+        thisMonthRevenue += invoice.amount;
+      } else if (issueDate >= lastMonthStart && issueDate <= lastMonthEnd) {
+        lastMonthRevenue += invoice.amount;
+      }
+
+      const monthKey = format(issueDate, 'MMM');
+      monthlyRevenue[monthKey] = (monthlyRevenue[monthKey] || 0) + invoice.amount;
+    });
+
+    let change = 0;
+    if (lastMonthRevenue > 0) {
+      change = ((thisMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100;
+    } else if (thisMonthRevenue > 0) {
+      change = 100;
+    }
+    
+    const last6Months = [...Array(6)].map((_, i) => {
+        return format(subMonths(now, i), 'MMM');
+    }).reverse();
+
+    const finalChartData = last6Months.map(month => ({
+      month,
+      revenue: monthlyRevenue[month] || 0,
+    }));
+
+
+    return { totalRevenue: total, revenueChange: change, chartData: finalChartData };
+  }, [paidInvoices]);
   
   const tasksWithProjectNames = useMemo(() => {
     if (!recentTasks || !projects) return [];
@@ -74,7 +121,7 @@ export default function DashboardPage() {
     });
   }, [recentTasks, projects]);
 
-  const isLoading = isLoadingProjects || isLoadingPendingTasks || isLoadingRecentTasks;
+  const isLoading = isLoadingProjects || isLoadingPendingTasks || isLoadingRecentTasks || isLoadingInvoices;
 
   const activeProjectsCount = useMemo(() => projects?.filter(p => p.status === 'In Progress').length ?? 0, [projects]);
   const completedProjectsCount = useMemo(() => projects?.filter(p => p.status === 'Completed').length ?? 0, [projects]);
@@ -97,8 +144,10 @@ export default function DashboardPage() {
             <CircleDollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${formattedRevenue}</div>
-            <p className="text-xs text-muted-foreground">+15.2% from last month</p>
+            <div className="text-2xl font-bold">${totalRevenue.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">
+              {revenueChange >= 0 ? '+' : ''}{revenueChange.toFixed(1)}% from last month
+            </p>
           </CardContent>
         </Card>
         <Card>
@@ -219,3 +268,5 @@ function DashboardSkeleton() {
     </div>
   )
 }
+
+    
