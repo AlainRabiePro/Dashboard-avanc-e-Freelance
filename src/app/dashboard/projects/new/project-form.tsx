@@ -94,7 +94,7 @@ export function ProjectForm({ project }: { project?: Project }) {
       });
       router.push('/dashboard/projects');
     } else {
-      const newProjectData = { ...projectData, createdAt: serverTimestamp() };
+      const newProjectData = { ...projectData, createdAt: serverTimestamp(), progress: 0 };
       const projectsCol = collection(firestore, 'projects');
       addDocumentNonBlocking(projectsCol, newProjectData);
       toast({
@@ -219,49 +219,74 @@ export function ProjectForm({ project }: { project?: Project }) {
             )}
           />
         </div>
-        <div className="grid md:grid-cols-2 gap-8">
-            <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                <FormItem>
-                    <FormLabel>Status</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                        <SelectTrigger>
-                        <SelectValue placeholder="Select project status" />
-                        </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                        {['Planning', 'In Progress', 'Testing', 'Completed'].map(status => (
-                        <SelectItem key={status} value={status}>{status}</SelectItem>
-                        ))}
-                    </SelectContent>
-                    </Select>
-                    <FormMessage />
-                </FormItem>
-                )}
-            />
-            <FormField
-                control={form.control}
-                name="progress"
-                render={({ field }) => (
-                <FormItem>
-                    <FormLabel>Progress ({field.value}%)</FormLabel>
-                    <FormControl>
-                        <Slider
-                            min={0}
-                            max={100}
-                            step={1}
-                            onValueChange={(value) => field.onChange(value[0])}
-                            value={[field.value]}
-                        />
-                    </FormControl>
-                    <FormMessage />
-                </FormItem>
-                )}
-            />
-        </div>
+        {isEditMode ? (
+          <div className="grid md:grid-cols-2 gap-8">
+              <FormField
+                  control={form.control}
+                  name="status"
+                  render={({ field }) => (
+                  <FormItem>
+                      <FormLabel>Status</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                          <SelectTrigger>
+                          <SelectValue placeholder="Select project status" />
+                          </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                          {['Planning', 'In Progress', 'Testing', 'Completed'].map(status => (
+                          <SelectItem key={status} value={status}>{status}</SelectItem>
+                          ))}
+                      </SelectContent>
+                      </Select>
+                      <FormMessage />
+                  </FormItem>
+                  )}
+              />
+              <FormField
+                  control={form.control}
+                  name="progress"
+                  render={({ field }) => (
+                  <FormItem>
+                      <FormLabel>Progress ({field.value}%)</FormLabel>
+                      <FormControl>
+                          <Slider
+                              min={0}
+                              max={100}
+                              step={1}
+                              onValueChange={(value) => field.onChange(value[0])}
+                              value={[field.value]}
+                          />
+                      </FormControl>
+                      <FormMessage />
+                  </FormItem>
+                  )}
+              />
+          </div>
+        ) : (
+          <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+              <FormItem>
+                  <FormLabel>Status</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                      <SelectTrigger>
+                      <SelectValue placeholder="Select project status" />
+                      </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                      {['Planning', 'In Progress', 'Testing', 'Completed'].map(status => (
+                      <SelectItem key={status} value={status}>{status}</SelectItem>
+                      ))}
+                  </SelectContent>
+                  </Select>
+                  <FormMessage />
+              </FormItem>
+              )}
+          />
+        )}
         <div className="flex justify-end">
           <Button type="submit" disabled={form.formState.isSubmitting}>{isEditMode ? "Update Project" : "Create Project"}</Button>
         </div>
