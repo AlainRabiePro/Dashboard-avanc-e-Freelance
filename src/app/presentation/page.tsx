@@ -3,6 +3,7 @@
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import React from "react";
+import Image from "next/image";
 const AnimatedChart = dynamic(() => import("./AnimatedChart"), { ssr: false });
 import { Calendar } from "@/components/ui/calendar";
 
@@ -13,12 +14,10 @@ export default function MarketingPage() {
       <section className="w-full pb-24">
         <header className="sticky top-0 z-30 flex items-center justify-between px-10 py-4 bg-slate-950/80 border-b border-slate-800 backdrop-blur">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-sky-500 text-xs font-bold">
-              FF
-            </div>
+            <Image src="/nexlance-logo.svg" alt="Nexlance" width={36} height={36} className="w-9 h-9" />
             <div className="flex flex-col leading-tight">
               <span className="text-sm font-semibold tracking-tight">
-                FreelanceForge
+                Nexlance
               </span>
               <span className="text-[11px] text-slate-400">
                 Dashboard pour freelances
@@ -95,7 +94,7 @@ export default function MarketingPage() {
                   <span className="h-2 w-2 rounded-full bg-red-500" />
                   <span className="h-2 w-2 rounded-full bg-amber-400" />
                   <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                  <span className="ml-3 text-[11px]">freelanceforge.app</span>
+                  <span className="ml-3 text-[11px]">nexlance.app</span>
                 </div>
                 <span className="text-[10px] text-slate-500">
                   Aperçu du dashboard
@@ -168,7 +167,7 @@ export default function MarketingPage() {
               Tout ton business freelance, en un seul endroit.
             </h2>
             <p className="text-sm text-slate-300">
-              FreelanceForge centralise tes projets, tâches, clients, sous-traitants,
+              Nexlance centralise tes projets, tâches, clients, sous-traitants,
               planning, factures et devis, pour te donner une vue claire en un coup d’œil.
             </p>
           </div>
@@ -228,7 +227,7 @@ export default function MarketingPage() {
               <span className="font-semibold text-slate-100">
                 3. Suis ton activité depuis le dashboard.
               </span>{" "}
-              Ouvre FreelanceForge chaque matin pour avoir ta vue globale.
+              Ouvre Nexlance chaque matin pour avoir ta vue globale.
             </li>
           </ol>
 

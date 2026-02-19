@@ -6,8 +6,11 @@ import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { ThemeProvider } from '@/components/theme-provider';
 
 export const metadata: Metadata = {
-  title: 'FreelanceForge',
+  title: 'Nexlance',
   description: 'Your all-in-one freelance management dashboard.',
+  icons: {
+    icon: '/nexlance-logo.svg',
+  },
 };
 
 export default function RootLayout({

@@ -79,7 +79,7 @@ export function SeedData() {
     <Card className="max-w-xl mx-auto">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Rocket /> Welcome to FreelanceForge!
+          <Rocket /> Welcome to Nexlance!
         </CardTitle>
         <CardDescription>
           Your dashboard is connected to Firestore, but your database is currently empty.

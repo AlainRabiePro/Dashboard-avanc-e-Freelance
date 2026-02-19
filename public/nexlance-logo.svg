@@ -1,0 +1,13 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Main N shape - left part -->
+  <path d="M 45 30 L 85 30 L 85 150 L 50 150 Q 40 150 40 140 L 40 40 Q 40 30 45 30" fill="white"/>
+  
+  <!-- Main N shape - right part -->
+  <path d="M 115 30 L 155 30 Q 160 30 160 35 L 160 145 Q 160 150 155 150 L 120 150 L 120 30" fill="white"/>
+  
+  <!-- Blue accent diagonal inside N -->
+  <polygon points="85,80 115,150 85,150" fill="#0099FF" opacity="0.9"/>
+  
+  <!-- Blue underline accent -->
+  <rect x="50" y="165" width="110" height="3" fill="#0099FF" rx="1.5"/>
+</svg>

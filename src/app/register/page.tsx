@@ -28,6 +28,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { doc, serverTimestamp } from "firebase/firestore";
 import { updateProfile } from "firebase/auth";
+import Image from "next/image";
 
 const registerFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
@@ -100,7 +101,11 @@ export default function RegisterPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center p-4 bg-background">
+    <main className="flex min-h-screen flex-col items-center justify-center p-4 bg-background">
+      <div className="mb-8 flex flex-col items-center">
+        <Image src="/nexlance-logo.svg" alt="Nexlance" width={64} height={64} className="mb-4 w-16 h-16" />
+        <h1 className="text-3xl font-bold">Nexlance</h1>
+      </div>
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>Register</CardTitle>

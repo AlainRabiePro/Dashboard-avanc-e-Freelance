@@ -27,6 +27,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/firebase";
 import { useEffect } from "react";
+import Image from "next/image";
 
 const loginFormSchema = z.object({
   email: z.string().email("Invalid email address."),
@@ -72,7 +73,11 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center p-4 bg-background">
+    <main className="flex min-h-screen flex-col items-center justify-center p-4 bg-background">
+      <div className="mb-8 flex flex-col items-center">
+        <Image src="/nexlance-logo.svg" alt="Nexlance" width={64} height={64} className="mb-4 w-16 h-16" />
+        <h1 className="text-3xl font-bold">Nexlance</h1>
+      </div>
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>Login</CardTitle>

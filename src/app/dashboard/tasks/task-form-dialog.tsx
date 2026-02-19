@@ -217,10 +217,10 @@ export function TaskFormDialog({ task, projects, subcontractors, children, defau
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Assign To</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value} disabled={!subcontractors || subcontractors.length === 0}>
+                    <Select onValueChange={field.onChange} value={field.value || "unassigned"} disabled={!subcontractors || subcontractors.length === 0}>
                       <FormControl><SelectTrigger><SelectValue placeholder="Select a subcontractor" /></SelectTrigger></FormControl>
                       <SelectContent>
-                        <SelectItem value="">Unassigned</SelectItem>
+                        <SelectItem value="unassigned">Unassigned</SelectItem>
                         {subcontractors.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
                       </SelectContent>
                     </Select>

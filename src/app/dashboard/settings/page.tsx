@@ -24,17 +24,22 @@ import {
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Button } from '@/components/ui/button';
 import { useFirebase, useDoc, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
 import { doc, serverTimestamp } from 'firebase/firestore';
 import type { User } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useLanguage, availableLanguages, Language } from '@/context/language-context';
-
+import { useEffect } from 'react';
+import { signOut } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
+import { Bell, CreditCard, Lock, LogOut, Trash2 } from 'lucide-react';
 
 export default function SettingsPage() {
-  const { user, firestore } = useFirebase();
+  const { user, firestore, auth } = useFirebase();
   const { toast } = useToast();
+  const router = useRouter();
   const { language, setLanguage, t } = useLanguage();
 
   const userProfileRef = useMemoFirebase(
@@ -43,7 +48,7 @@ export default function SettingsPage() {
   );
   const { data: userProfile, isLoading: isLoadingProfile } = useDoc<User>(userProfileRef);
 
-  const handleNotificationChange = (setting: 'emailNotifications' | 'marketingEmails', value: boolean) => {
+  const handleNotificationChange = (setting: 'emailNotifications' | 'marketingEmails' | 'weeklyReport' | 'invoiceReminders', value: boolean) => {
     if (!user || !firestore) return;
 
     const userRef = doc(firestore, 'users', user.uid);
@@ -58,53 +63,97 @@ export default function SettingsPage() {
     });
   };
 
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      router.push('/login');
+      toast({
+        title: 'Logged Out',
+        description: 'You have been successfully logged out.',
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleDeleteAccount = () => {
+    toast({
+      title: 'Delete Account',
+      description: 'Please contact support to delete your account.',
+    });
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="flex justify-end w-full mb-2">
+    <div className="space-y-6 pb-10">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">{t('settings.title')}</h1>
+          <p className="text-muted-foreground mt-1">
+            {t('settings.description')}
+          </p>
+        </div>
         <ThemeToggle />
-      </div>
-      <div>
-        <h3 className="text-lg font-medium">{t('settings.title')}</h3>
-        <p className="text-sm text-muted-foreground">
-          {t('settings.description')}
-        </p>
       </div>
       <Separator />
 
-      <Accordion type="single" collapsible className="w-full" defaultValue="item-3">
-        <AccordionItem value="item-1">
-          <AccordionTrigger>{t('settings.appearance.title')}</AccordionTrigger>
+      {/* Settings Sections */}
+      <Accordion type="single" collapsible className="w-full" defaultValue="item-2">
+        {/* Appearance */}
+        <AccordionItem value="item-2">
+          <AccordionTrigger className="hover:no-underline">
+            <div className="flex items-center gap-3">
+              <span>🎨</span>
+              <span>Appearance</span>
+            </div>
+          </AccordionTrigger>
           <AccordionContent>
             <Card>
               <CardHeader>
-                <CardTitle>{t('settings.appearance.title')}</CardTitle>
+                <CardTitle>Theme Settings</CardTitle>
                 <CardDescription>
-                  {t('settings.appearance.description')}
+                  Customize how Nexlance looks and feels
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium">{t('settings.appearance.theme')}</p>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <Label>Theme</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Choose between light and dark mode
+                    </p>
+                  </div>
                   <ThemeToggle />
                 </div>
               </CardContent>
             </Card>
           </AccordionContent>
         </AccordionItem>
-        <AccordionItem value="item-2">
-          <AccordionTrigger>{t('settings.language.title')}</AccordionTrigger>
+
+        {/* Language */}
+        <AccordionItem value="item-3">
+          <AccordionTrigger className="hover:no-underline">
+            <div className="flex items-center gap-3">
+              <span>🌐</span>
+              <span>Language & Localization</span>
+            </div>
+          </AccordionTrigger>
           <AccordionContent>
             <Card>
               <CardHeader>
-                <CardTitle>{t('settings.language.title')}</CardTitle>
+                <CardTitle>Language Preferences</CardTitle>
                 <CardDescription>
-                  {t('settings.language.description')}
+                  Select your preferred language for the interface
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid gap-4">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="language-select">{t('settings.language.select')}</Label>
+                    <Label htmlFor="language-select">Interface Language</Label>
                     <Select value={language} onValueChange={(value) => setLanguage(value as Language)}>
                       <SelectTrigger id="language-select" className="w-[180px]">
                         <SelectValue placeholder="Select language" />
@@ -121,14 +170,21 @@ export default function SettingsPage() {
             </Card>
           </AccordionContent>
         </AccordionItem>
-        <AccordionItem value="item-3">
-          <AccordionTrigger>{t('settings.notifications.title')}</AccordionTrigger>
+
+        {/* Notifications */}
+        <AccordionItem value="item-4">
+          <AccordionTrigger className="hover:no-underline">
+            <div className="flex items-center gap-3">
+              <Bell className="w-5 h-5" />
+              <span>Notifications</span>
+            </div>
+          </AccordionTrigger>
           <AccordionContent>
             <Card>
               <CardHeader>
-                <CardTitle>{t('settings.notifications.title')}</CardTitle>
+                <CardTitle>Notification Preferences</CardTitle>
                 <CardDescription>
-                  {t('settings.notifications.description')}
+                  Manage how and when you receive notifications
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -136,14 +192,15 @@ export default function SettingsPage() {
                   <>
                     <Skeleton className="h-20 w-full" />
                     <Skeleton className="h-20 w-full" />
+                    <Skeleton className="h-20 w-full" />
                   </>
                 ) : (
                   <>
                     <div className="flex items-center justify-between rounded-lg border p-4">
                         <div className="space-y-0.5">
-                            <Label htmlFor="email-notifications">{t('settings.notifications.email.label')}</Label>
+                            <Label htmlFor="email-notifications">Email Notifications</Label>
                             <p className="text-sm text-muted-foreground">
-                                {t('settings.notifications.email.description')}
+                                Receive important updates via email
                             </p>
                         </div>
                         <Switch 
@@ -152,11 +209,37 @@ export default function SettingsPage() {
                           onCheckedChange={(value) => handleNotificationChange('emailNotifications', value)}
                         />
                     </div>
-                     <div className="flex items-center justify-between rounded-lg border p-4">
+                    <div className="flex items-center justify-between rounded-lg border p-4">
                         <div className="space-y-0.5">
-                            <Label htmlFor="marketing-emails">{t('settings.notifications.marketing.label')}</Label>
+                            <Label htmlFor="invoice-reminders">Invoice Reminders</Label>
                             <p className="text-sm text-muted-foreground">
-                                {t('settings.notifications.marketing.description')}
+                                Get reminders for unpaid invoices
+                            </p>
+                        </div>
+                        <Switch 
+                          id="invoice-reminders"
+                          checked={userProfile?.invoiceReminders ?? true}
+                          onCheckedChange={(value) => handleNotificationChange('invoiceReminders', value)}
+                        />
+                    </div>
+                    <div className="flex items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                            <Label htmlFor="weekly-report">Weekly Report</Label>
+                            <p className="text-sm text-muted-foreground">
+                                Receive a summary of your business activity
+                            </p>
+                        </div>
+                        <Switch 
+                          id="weekly-report"
+                          checked={userProfile?.weeklyReport ?? true}
+                          onCheckedChange={(value) => handleNotificationChange('weeklyReport', value)}
+                        />
+                    </div>
+                    <div className="flex items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                            <Label htmlFor="marketing-emails">Marketing Emails</Label>
+                            <p className="text-sm text-muted-foreground">
+                                Receive news and tips about Nexlance
                             </p>
                         </div>
                         <Switch 
@@ -167,6 +250,108 @@ export default function SettingsPage() {
                     </div>
                   </>
                 )}
+              </CardContent>
+            </Card>
+          </AccordionContent>
+        </AccordionItem>
+
+        {/* Security */}
+        <AccordionItem value="item-5">
+          <AccordionTrigger className="hover:no-underline">
+            <div className="flex items-center gap-3">
+              <Lock className="w-5 h-5" />
+              <span>Security & Privacy</span>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent>
+            <Card>
+              <CardHeader>
+                <CardTitle>Security Settings</CardTitle>
+                <CardDescription>
+                  Manage your account security and privacy
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Button variant="outline" className="w-full gap-2 justify-start">
+                  <Lock className="w-4 h-4" />
+                  Change Password
+                </Button>
+                <Button variant="outline" className="w-full gap-2 justify-start">
+                  Change Email Address
+                </Button>
+                <Button variant="outline" className="w-full gap-2 justify-start">
+                  Two-Factor Authentication
+                </Button>
+              </CardContent>
+            </Card>
+          </AccordionContent>
+        </AccordionItem>
+
+        {/* Billing */}
+        <AccordionItem value="item-6">
+          <AccordionTrigger className="hover:no-underline">
+            <div className="flex items-center gap-3">
+              <CreditCard className="w-5 h-5" />
+              <span>Billing & Subscription</span>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent>
+            <Card>
+              <CardHeader>
+                <CardTitle>Billing Information</CardTitle>
+                <CardDescription>
+                  Manage your subscription and billing details
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="rounded-lg border p-4 bg-muted/50">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-semibold">Current Plan</p>
+                      <p className="text-sm text-muted-foreground">Free Plan - Unlimited Duration</p>
+                    </div>
+                    <Button variant="outline">Upgrade</Button>
+                  </div>
+                </div>
+                <Button variant="outline" className="w-full gap-2 justify-start">
+                  Manage Billing
+                </Button>
+                <Button variant="outline" className="w-full gap-2 justify-start">
+                  View Invoices
+                </Button>
+              </CardContent>
+            </Card>
+          </AccordionContent>
+        </AccordionItem>
+
+        {/* Account */}
+        <AccordionItem value="item-7">
+          <AccordionTrigger className="hover:no-underline">
+            <div className="flex items-center gap-3">
+              <span>⚙️</span>
+              <span>Account Management</span>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent>
+            <Card>
+              <CardHeader>
+                <CardTitle>Account Actions</CardTitle>
+                <CardDescription>
+                  Manage your account access and data
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Button onClick={handleLogout} variant="outline" className="w-full gap-2 justify-start">
+                  <LogOut className="w-4 h-4" />
+                  Log Out
+                </Button>
+                <Button onClick={handleDeleteAccount} variant="destructive" className="w-full gap-2 justify-start">
+                  <Trash2 className="w-4 h-4" />
+                  Delete Account
+                </Button>
+                <p className="text-xs text-muted-foreground">
+                  Deleting your account will permanently remove all your data and cannot be undone.
+                </p>
               </CardContent>
             </Card>
           </AccordionContent>

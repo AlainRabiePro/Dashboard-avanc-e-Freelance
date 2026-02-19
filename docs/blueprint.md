@@ -1,4 +1,4 @@
-# **App Name**: FreelanceForge
+# **App Name**: Nexlance
 
 ## Schéma de parcours utilisateur idéal
 

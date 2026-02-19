@@ -23,6 +23,7 @@ import {
   Mail,
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { ThemeSidebarButton } from "@/components/theme-toggle";
 import { usePathname } from "next/navigation";
 import { useLanguage } from "@/context/language-context";
@@ -55,8 +56,8 @@ export function SidebarNavigation() {
     <>
       <SidebarHeader>
         <div className="flex items-center gap-2 p-2">
-          <Briefcase className="w-8 h-8 text-primary" />
-          <h1 className="text-xl font-bold text-foreground">FreelanceForge</h1>
+          <Image src="/nexlance-logo.svg" alt="Nexlance" width={32} height={32} className="w-8 h-8" />
+          <h1 className="text-xl font-bold text-foreground">Nexlance</h1>
         </div>
       </SidebarHeader>
       <SidebarContent>
