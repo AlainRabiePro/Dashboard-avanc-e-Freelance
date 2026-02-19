@@ -4,7 +4,11 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Mail, Search, Send, Trash2, X, Plus, MoreVertical, Star, Archive, AlertCircle, Clock } from "lucide-react";
+import { 
+  Mail, Search, Send, Trash2, X, Plus, MoreVertical, Star, Archive, 
+  AlertCircle, Clock, ChevronDown, CheckCircle, Tag as TagIcon, 
+  FileText, Paperclip, SmilePlus, Settings
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -91,8 +95,6 @@ const colorOptions = [
   "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
   "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200",
   "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
-  "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200",
-  "bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200",
 ];
 
 export default function MailPage() {
@@ -259,457 +261,434 @@ export default function MailPage() {
     setSelectedTags(selectedTags.filter((t) => t !== tagId));
   };
 
+  const unreadCount = emails.filter(e => !e.read).length;
+
   return (
-    <div className="h-full flex flex-col bg-gradient-to-br from-background via-background to-slate-50/50 dark:to-slate-900/50">
-      {/* Header moderne et minimaliste */}
-      <div className="border-b border-slate-200/50 dark:border-slate-700/50 bg-background/80 backdrop-blur-xl px-8 py-6">
-        <div className="max-w-7xl mx-auto w-full">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-gradient-to-br from-sky-500 to-sky-600 rounded-lg shadow-lg">
-                <Mail className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
-                  Courrier
-                </h1>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Gérez vos e-mails et communications</p>
-              </div>
+    <div className="h-[calc(100vh-120px)] flex flex-col bg-white dark:bg-slate-950 rounded-lg border border-gray-200 dark:border-slate-800 overflow-hidden shadow-sm">
+      {/* Top Bar - Gmail Style */}
+      <div className="border-b border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-4 py-3">
+        <div className="flex items-center gap-4 justify-between">
+          <div className="flex-1 max-w-lg">
+            <div className="relative group">
+              <Search className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+              <Input
+                placeholder="Rechercher un e-mail..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 pr-4 bg-gray-100 dark:bg-slate-900 border-0 rounded-full h-10 focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-blue-500"
+              />
             </div>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => setShowTagManager(!showTagManager)}
+              variant="ghost"
+              size="sm"
+              className="rounded-full hover:bg-gray-100 dark:hover:bg-slate-800"
+              title="Gérer les tags"
+            >
+              <TagIcon className="w-5 h-5" />
+            </Button>
             <Button
               onClick={() => setIsComposing(true)}
-              className="bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-600 hover:to-sky-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 px-6 h-11"
+              className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6"
             >
               <Mail className="w-4 h-4 mr-2" />
-              Nouveau message
+              Nouveau
             </Button>
-          </div>
-
-          {/* Barre de recherche et filtres */}
-          <div className="space-y-4">
-            <div className="flex gap-3 items-center">
-              <div className="flex-1 relative group">
-                <Search className="absolute left-4 top-3.5 w-5 h-5 text-slate-400 group-focus-within:text-sky-500 transition-colors" />
-                <Input
-                  placeholder="Rechercher dans vos e-mails..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-12 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-lg h-11 focus:border-sky-500 focus:ring-sky-500/10 focus:ring-4 transition-all"
-                />
-              </div>
-            </div>
-
-            {/* Tags Filter - Moderne */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Filtrer:</span>
-              <div className="flex gap-2 flex-wrap">
-                {tags.map((tag) => (
-                  <button
-                    key={tag.id}
-                    onClick={() => handleToggleTagFilter(tag.id)}
-                    className={`group relative px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${
-                      selectedTags.includes(tag.id)
-                        ? `${tag.color} shadow-md ring-2 ring-offset-1 dark:ring-offset-slate-900`
-                        : `${tag.color} opacity-50 hover:opacity-75`
-                    }`}
-                  >
-                    {tag.name}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setTagToDelete(tag);
-                      }}
-                      className="absolute -right-1 -top-1 opacity-0 group-hover:opacity-100 p-1 bg-red-500 rounded-full shadow-md transition-opacity"
-                    >
-                      <X className="w-2.5 h-2.5 text-white" />
-                    </button>
-                  </button>
-                ))}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowTagManager(!showTagManager)}
-                  className="text-slate-600 dark:text-slate-400 h-9 px-3 rounded-full border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
-                >
-                  <Plus className="w-4 h-4 mr-1" />
-                  Ajouter tag
-                </Button>
-              </div>
-              {selectedTags.length > 0 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSelectedTags([])}
-                  className="ml-auto text-slate-500 dark:text-slate-400 text-xs px-3 h-8"
-                >
-                  Réinitialiser filtres
-                </Button>
-              )}
-            </div>
-
-            {/* Tag Manager */}
-            {showTagManager && (
-              <div className="p-4 bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 space-y-3">
-                <h3 className="font-semibold text-sm">Créer un nouveau tag</h3>
-                <div className="flex gap-3 flex-wrap">
-                  <Input
-                    placeholder="Nom du tag..."
-                    value={newTagName}
-                    onChange={(e) => setNewTagName(e.target.value)}
-                    className="flex-1 min-w-40 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-lg"
-                  />
-                  <div className="flex gap-1.5">
-                    {colorOptions.map((color) => (
-                      <button
-                        key={color}
-                        onClick={() => setNewTagColor(color)}
-                        className={`w-8 h-8 rounded-lg border-2 transition-all ${
-                          newTagColor === color
-                            ? "border-slate-800 dark:border-white ring-2 ring-offset-1"
-                            : "border-transparent opacity-60 hover:opacity-100"
-                        } ${color}`}
-                      />
-                    ))}
-                  </div>
-                  <Button
-                    onClick={handleCreateTag}
-                    className="bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-600 hover:to-sky-700 text-white px-4"
-                  >
-                    Ajouter
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    onClick={() => setShowTagManager(false)}
-                    className="text-slate-600 dark:text-slate-400"
-                  >
-                    Annuler
-                  </Button>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>
 
-      {/* Modal de confirmation suppression tag */}
-      <Dialog open={!!tagToDelete} onOpenChange={(open) => { if (!open) setTagToDelete(null); }}>
-        <DialogContent className="rounded-xl">
+      {/* Tag Manager Dialog */}
+      <Dialog open={showTagManager} onOpenChange={setShowTagManager}>
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle>Supprimer le tag</DialogTitle>
+            <DialogTitle>Gérer les tags</DialogTitle>
           </DialogHeader>
-          <div className="py-4 text-slate-600 dark:text-slate-400">
-            Êtes-vous sûr de vouloir supprimer le tag <span className="font-semibold text-slate-900 dark:text-white">{tagToDelete?.name}</span> ?<br />
-            <span className="text-sm">Cette action retirera ce tag de tous les e-mails.</span>
+          <div className="space-y-4 max-h-96 overflow-y-auto">
+            {/* Add New Tag */}
+            <div className="space-y-2 pb-4 border-b border-gray-200 dark:border-slate-700">
+              <h4 className="font-medium text-sm">Créer un nouveau tag</h4>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Nom du tag..."
+                  value={newTagName}
+                  onChange={(e) => setNewTagName(e.target.value)}
+                  className="flex-1"
+                />
+                <div className="flex gap-1">
+                  {colorOptions.slice(0, 5).map((color) => (
+                    <button
+                      key={color}
+                      onClick={() => setNewTagColor(color)}
+                      className={`w-6 h-6 rounded border-2 ${
+                        newTagColor === color
+                          ? "border-gray-800 dark:border-white"
+                          : "border-transparent"
+                      } ${color}`}
+                    />
+                  ))}
+                </div>
+                <Button
+                  onClick={handleCreateTag}
+                  size="sm"
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  Ajouter
+                </Button>
+              </div>
+            </div>
+
+            {/* Existing Tags */}
+            <div className="space-y-2">
+              <h4 className="font-medium text-sm">Mes tags</h4>
+              {tags.map((tag) => (
+                <div key={tag.id} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-slate-800 rounded">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-3 h-3 rounded-full ${tag.color.split(' ')[0]}`} />
+                    <span className="text-sm">{tag.name}</span>
+                  </div>
+                  <button
+                    onClick={() => setTagToDelete(tag)}
+                    className="text-red-500 hover:text-red-700 text-sm"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setTagToDelete(null)}>Annuler</Button>
-            <Button variant="destructive" onClick={() => { if (tagToDelete) { handleDeleteTag(tagToDelete.id); setTagToDelete(null); } }}>Supprimer</Button>
+            <Button variant="outline" onClick={() => setShowTagManager(false)}>
+              Fermer
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Main Content - Grid Moderne */}
-      <div className="flex flex-1 overflow-hidden gap-0">
-        {/* Email List - Sidebar gauche */}
-        <div className="w-full lg:w-80 border-r border-slate-200/50 dark:border-slate-700/50 overflow-y-auto flex flex-col bg-background/50 backdrop-blur-sm">
-          {filteredEmails.length === 0 ? (
-            <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-              <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-lg mb-3">
-                <Mail className="w-6 h-6 text-slate-400" />
-              </div>
-              <p className="text-slate-500 dark:text-slate-400 font-medium">Aucun e-mail trouvé</p>
-              <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">Essayez de modifier vos filtres</p>
+      {/* Delete Tag Confirmation */}
+      <Dialog open={!!tagToDelete} onOpenChange={(open) => { if (!open) setTagToDelete(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Supprimer le tag</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Êtes-vous sûr de vouloir supprimer le tag <span className="font-semibold">{tagToDelete?.name}</span> ?
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTagToDelete(null)}>Annuler</Button>
+            <Button variant="destructive" onClick={() => { if (tagToDelete) { handleDeleteTag(tagToDelete.id); setTagToDelete(null); } }}>
+              Supprimer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Main Content */}
+      {isComposing ? (
+        // Compose Modal
+        <div className="flex-1 flex items-center justify-center bg-white dark:bg-slate-950 p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md w-full max-w-2xl border border-gray-200 dark:border-slate-700">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-slate-700">
+              <h2 className="font-medium">Nouveau message</h2>
+              <button
+                onClick={() => {
+                  setIsComposing(false);
+                  setComposeData({ to: "", subject: "", message: "" });
+                }}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
-          ) : (
-            <div className="divide-y divide-slate-200/50 dark:divide-slate-700/50">
-              {filteredEmails.map((email) => (
-                <div
-                  key={email.id}
-                  onClick={() => {
-                    setSelectedEmail(email);
-                    handleMarkAsRead(email.id);
-                  }}
-                  className={`p-4 cursor-pointer transition-all duration-200 border-l-4 group ${
-                    selectedEmail?.id === email.id
-                      ? "bg-white dark:bg-slate-800 border-l-sky-500 shadow-sm"
-                      : "bg-transparent border-l-transparent hover:bg-slate-100/50 dark:hover:bg-slate-800/50"
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <div className="flex-1 min-w-0">
-                      <span className={`text-sm font-semibold block truncate ${!email.read ? "text-slate-900 dark:text-white" : "text-slate-700 dark:text-slate-300"}`}>
-                        {email.from}
-                      </span>
-                      <p className={`text-sm line-clamp-1 mt-1 ${!email.read ? "font-semibold text-slate-900 dark:text-white" : "text-slate-600 dark:text-slate-400"}`}>
-                        {email.subject}
-                      </p>
+
+            <div className="p-4 space-y-4">
+              <div>
+                <label className="text-sm text-gray-600 dark:text-gray-400">À:</label>
+                <Input
+                  placeholder="Destinataire"
+                  value={composeData.to}
+                  onChange={(e) => setComposeData({ ...composeData, to: e.target.value })}
+                  className="mt-1 bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-700"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm text-gray-600 dark:text-gray-400">Sujet:</label>
+                <Input
+                  placeholder="Sujet"
+                  value={composeData.subject}
+                  onChange={(e) => setComposeData({ ...composeData, subject: e.target.value })}
+                  className="mt-1 bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-700"
+                />
+              </div>
+
+              <div>
+                <Textarea
+                  placeholder="Composez votre message..."
+                  value={composeData.message}
+                  onChange={(e) => setComposeData({ ...composeData, message: e.target.value })}
+                  className="min-h-48 bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-700 resize-none"
+                />
+              </div>
+            </div>
+
+            <div className="p-4 border-t border-gray-200 dark:border-slate-700 flex gap-2 items-center">
+              <Button
+                onClick={handleSendEmail}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+                disabled={isSending}
+              >
+                <Send className="w-4 h-4 mr-2" />
+                {isSending ? "Envoi..." : "Envoyer"}
+              </Button>
+              {sendError && (
+                <span className="text-red-500 text-sm">{sendError}</span>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : (
+        // Email List & Detail View
+        <div className="flex flex-1 overflow-hidden gap-0">
+          {/* Left Sidebar - Folders */}
+          <div className="w-40 border-r border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-950 overflow-y-auto flex flex-col p-2 text-sm">
+            <div className="space-y-1">
+              <div className="px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-slate-800 cursor-pointer font-medium">
+                📧 Courrier
+              </div>
+              <div className="px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-slate-800 cursor-pointer text-gray-600 dark:text-gray-400">
+                ⭐ Suivi
+              </div>
+              <div className="px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-slate-800 cursor-pointer text-gray-600 dark:text-gray-400">
+                📤 Envoyés
+              </div>
+              <div className="px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-slate-800 cursor-pointer text-gray-600 dark:text-gray-400">
+                🗑️ Corbeille
+              </div>
+            </div>
+
+            <div className="border-t border-gray-200 dark:border-slate-800 mt-3 pt-3">
+              <div className="text-xs font-semibold text-gray-600 dark:text-gray-400 px-3 mb-2">ÉTIQUETTES</div>
+              <div className="space-y-1">
+                {tags.map((tag) => (
+                  <button
+                    key={tag.id}
+                    onClick={() => handleToggleTagFilter(tag.id)}
+                    className={`w-full text-left px-3 py-1.5 rounded text-xs transition-colors ${
+                      selectedTags.includes(tag.id)
+                        ? "bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 font-medium"
+                        : "hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-700 dark:text-gray-300"
+                    }`}
+                  >
+                    {tag.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Middle - Email List */}
+          <div className="w-72 border-r border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-950 flex flex-col overflow-hidden">
+            {/* List Header */}
+            <div className="border-b border-gray-200 dark:border-slate-800 p-3 flex items-center justify-between">
+              <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                {filteredEmails.length} e-mails
+              </span>
+              <span className="text-xs text-gray-500 dark:text-gray-400">
+                {unreadCount} non lus
+              </span>
+            </div>
+
+            {/* Email List */}
+            <div className="flex-1 overflow-y-auto divide-y divide-gray-100 dark:divide-slate-800">
+              {filteredEmails.length === 0 ? (
+                <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400 text-sm">
+                  Aucun e-mail
+                </div>
+              ) : (
+                filteredEmails.map((email) => (
+                  <div
+                    key={email.id}
+                    onClick={() => {
+                      setSelectedEmail(email);
+                      handleMarkAsRead(email.id);
+                    }}
+                    className={`p-3 cursor-pointer transition-colors text-xs ${
+                      selectedEmail?.id === email.id
+                        ? "bg-blue-50 dark:bg-blue-900/20"
+                        : "hover:bg-gray-50 dark:hover:bg-slate-800/50"
+                    } ${!email.read ? "bg-blue-50/50 dark:bg-blue-900/10" : ""}`}
+                  >
+                    <div className="flex items-start gap-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleToggleStar(email.id);
+                        }}
+                        className="mt-0.5 text-gray-300 hover:text-yellow-500 flex-shrink-0"
+                      >
+                        {email.starred ? (
+                          <Star className="w-3.5 h-3.5 fill-yellow-500 text-yellow-500" />
+                        ) : (
+                          <Star className="w-3.5 h-3.5" />
+                        )}
+                      </button>
+                      
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-gray-900 dark:text-white truncate">
+                          {email.from}
+                        </div>
+                        <div className={`truncate mt-0.5 ${!email.read ? "font-medium text-gray-900 dark:text-white" : "text-gray-600 dark:text-gray-400"}`}>
+                          {email.subject}
+                        </div>
+                        <div className="text-gray-500 dark:text-gray-500 truncate mt-0.5">
+                          {email.preview}
+                        </div>
+                      </div>
+
+                      <div className="text-gray-500 dark:text-gray-400 flex-shrink-0 text-right whitespace-nowrap">
+                        {email.date}
+                      </div>
                     </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Right - Email Detail */}
+          <div className="flex-1 bg-white dark:bg-slate-950 flex flex-col overflow-hidden">
+            {selectedEmail ? (
+              <>
+                {/* Detail Header */}
+                <div className="border-b border-gray-200 dark:border-slate-800 p-3 flex items-center justify-between bg-gray-50 dark:bg-slate-900/50">
+                  <div className="flex items-center gap-2">
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleToggleStar(email.id);
-                      }}
-                      className="text-slate-300 hover:text-yellow-500 transition-colors flex-shrink-0"
+                      onClick={() => handleToggleStar(selectedEmail.id)}
+                      className="text-gray-400 hover:text-yellow-500"
                     >
-                      {email.starred ? (
+                      {selectedEmail.starred ? (
                         <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
                       ) : (
                         <Star className="w-4 h-4" />
                       )}
                     </button>
+                    <button className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                      <Archive className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteEmail(selectedEmail.id)}
+                      className="text-gray-400 hover:text-red-500"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                   
-                  <p className="text-xs text-slate-500 dark:text-slate-500 line-clamp-2 mb-2">
-                    {email.preview}
-                  </p>
+                  <button className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                    <MoreVertical className="w-4 h-4" />
+                  </button>
+                </div>
 
-                  {email.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mb-2">
-                      {email.tags.slice(0, 2).map((tag) => (
-                        <Badge key={tag} variant="secondary" className={`text-xs ${getTagColor(tag)}`}>
-                          {tags.find((t) => t.id === tag)?.name}
-                        </Badge>
-                      ))}
-                      {email.tags.length > 2 && (
-                        <Badge variant="outline" className="text-xs">
-                          +{email.tags.length - 2}
-                        </Badge>
-                      )}
+                {/* Detail Content */}
+                <div className="flex-1 overflow-y-auto p-4">
+                  <div className="max-w-3xl">
+                    {/* Email Header */}
+                    <div className="mb-4">
+                      <h1 className="text-lg font-bold mb-3 text-gray-900 dark:text-white">
+                        {selectedEmail.subject}
+                      </h1>
+
+                      <div className="flex items-center justify-between mb-3 pb-3 border-b border-gray-200 dark:border-slate-800">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                            {selectedEmail.from.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <div className="text-sm font-medium text-gray-900 dark:text-white">
+                              {selectedEmail.from}
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                              {selectedEmail.fromEmail}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {selectedEmail.date}
+                        </div>
+                      </div>
                     </div>
-                  )}
 
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-400">{email.date}</span>
-                    {!email.read && (
-                      <span className="inline-block w-2 h-2 bg-sky-500 rounded-full"></span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Email Detail or Compose - Main Content */}
-        <div className="flex-1 flex flex-col overflow-hidden bg-background">
-          {isComposing ? (
-            // Compose View - Ultra Moderne
-            <div className="flex-1 flex flex-col overflow-hidden">
-              <div className="px-8 py-6 border-b border-slate-200/50 dark:border-slate-700/50 bg-background/50">
-                <h2 className="text-2xl font-bold">Composer un nouveau message</h2>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Rédigez et envoyez vos e-mails en un instant</p>
-              </div>
-
-              <div className="flex-1 flex flex-col overflow-y-auto p-8">
-                <div className="space-y-6 max-w-2xl">
-                  {/* To Field */}
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                      À:
-                    </label>
-                    <Input
-                      placeholder="destinataire@exemple.com"
-                      value={composeData.to}
-                      onChange={(e) => setComposeData({ ...composeData, to: e.target.value })}
-                      className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-lg h-11 focus:border-sky-500 focus:ring-sky-500/10 focus:ring-4"
-                    />
-                  </div>
-
-                  {/* Subject Field */}
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                      Sujet:
-                    </label>
-                    <Input
-                      placeholder="Sujet de l'e-mail"
-                      value={composeData.subject}
-                      onChange={(e) => setComposeData({ ...composeData, subject: e.target.value })}
-                      className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-lg h-11 focus:border-sky-500 focus:ring-sky-500/10 focus:ring-4"
-                    />
-                  </div>
-
-                  {/* Message Field */}
-                  <div className="flex-1">
-                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                      Message:
-                    </label>
-                    <Textarea
-                      placeholder="Écrivez votre message ici..."
-                      value={composeData.message}
-                      onChange={(e) => setComposeData({ ...composeData, message: e.target.value })}
-                      className="min-h-[300px] bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-lg focus:border-sky-500 focus:ring-sky-500/10 focus:ring-4 resize-none"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Actions Footer */}
-              <div className="px-8 py-6 border-t border-slate-200/50 dark:border-slate-700/50 flex gap-3 bg-background/50">
-                <Button
-                  onClick={handleSendEmail}
-                  className="bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-600 hover:to-sky-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all px-6"
-                  disabled={isSending}
-                >
-                  <Send className="w-4 h-4 mr-2" />
-                  {isSending ? "Envoi en cours..." : "Envoyer"}
-                </Button>
-                {sendError && (
-                  <div className="flex items-center gap-2 text-red-500 text-sm">
-                    <AlertCircle className="w-4 h-4" />
-                    {sendError}
-                  </div>
-                )}
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setIsComposing(false);
-                    setComposeData({ to: "", subject: "", message: "" });
-                  }}
-                  className="text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700"
-                >
-                  Annuler
-                </Button>
-              </div>
-            </div>
-          ) : selectedEmail ? (
-            // Email Detail View - Ultra Moderne
-            <div className="flex-1 flex flex-col overflow-hidden">
-              {/* Email Header */}
-              <div className="px-8 py-6 border-b border-slate-200/50 dark:border-slate-700/50 bg-background/50">
-                <div className="flex items-start justify-between gap-4 mb-4">
-                  <div className="flex-1 min-w-0">
-                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2 break-words">
-                      {selectedEmail.subject}
-                    </h2>
-                    <div className="flex flex-col gap-1">
-                      <p className="text-sm text-slate-600 dark:text-slate-400">
-                        De: <span className="font-semibold text-slate-900 dark:text-white">{selectedEmail.from}</span>
-                      </p>
-                      <p className="text-sm text-slate-600 dark:text-slate-400">
-                        {selectedEmail.fromEmail}
-                      </p>
-                      <p className="text-xs text-slate-500 dark:text-slate-500 mt-1 flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        {selectedEmail.date}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex gap-2 flex-shrink-0">
-                    <button
-                      onClick={() => handleToggleStar(selectedEmail.id)}
-                      className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-                    >
-                      {selectedEmail.starred ? (
-                        <Star className="w-5 h-5 fill-yellow-500 text-yellow-500" />
-                      ) : (
-                        <Star className="w-5 h-5 text-slate-400" />
-                      )}
-                    </button>
-                    <button className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-400">
-                      <MoreVertical className="w-5 h-5" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Email Body */}
-              <div className="flex-1 overflow-y-auto px-8 py-6">
-                <div className="max-w-2xl space-y-6">
-                  {/* Content */}
-                  <div className="prose dark:prose-invert max-w-none">
-                    <p className="text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed text-base">
+                    {/* Email Body */}
+                    <div className="mb-4 text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
                       {selectedEmail.body}
-                    </p>
-                  </div>
+                    </div>
 
-                  {/* Tags Section */}
-                  {(selectedEmail.tags.length > 0 || tags.filter((tag) => !selectedEmail.tags.includes(tag.id)).length > 0) && (
-                    <div className="pt-6 border-t border-slate-200/50 dark:border-slate-700/50 space-y-4">
-                      <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                        Tags ({selectedEmail.tags.length})
-                      </h3>
-                      
-                      {/* Existing Tags */}
-                      {selectedEmail.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-2">
+                    {/* Tags Section */}
+                    {(selectedEmail.tags.length > 0 || tags.filter((tag) => !selectedEmail.tags.includes(tag.id)).length > 0) && (
+                      <div className="pt-3 border-t border-gray-200 dark:border-slate-800">
+                        <h3 className="text-xs font-medium mb-2 text-gray-900 dark:text-white">Étiquettes</h3>
+                        
+                        <div className="flex flex-wrap gap-1.5 mb-3">
                           {selectedEmail.tags.map((tag) => (
                             <div
                               key={tag}
-                              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${getTagColor(tag)}`}
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${getTagColor(tag)}`}
                             >
                               {tags.find((t) => t.id === tag)?.name}
                               <button
                                 onClick={() => handleRemoveTag(selectedEmail.id, tag)}
                                 className="hover:opacity-70"
                               >
-                                <X className="w-3 h-3" />
+                                <X className="w-2.5 h-2.5" />
                               </button>
                             </div>
                           ))}
                         </div>
-                      )}
 
-                      {/* Add Tags */}
-                      {tags.filter((tag) => !selectedEmail.tags.includes(tag.id)).length > 0 && (
-                        <div>
-                          <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">Ajouter des tags:</p>
-                          <div className="flex flex-wrap gap-2">
-                            {tags
-                              .filter((tag) => !selectedEmail.tags.includes(tag.id))
-                              .map((tag) => (
-                                <button
-                                  key={tag.id}
-                                  onClick={() => handleAddTag(selectedEmail.id, tag.id)}
-                                  className={`px-3 py-1.5 rounded-full text-sm font-medium border border-dashed transition-all opacity-60 hover:opacity-100 ${tag.color}`}
-                                >
-                                  + {tag.name}
-                                </button>
-                              ))}
+                        {tags.filter((tag) => !selectedEmail.tags.includes(tag.id)).length > 0 && (
+                          <div>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1.5">Ajouter une étiquette:</p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {tags
+                                .filter((tag) => !selectedEmail.tags.includes(tag.id))
+                                .map((tag) => (
+                                  <button
+                                    key={tag.id}
+                                    onClick={() => handleAddTag(selectedEmail.id, tag.id)}
+                                    className={`px-2 py-0.5 rounded text-xs font-medium border border-dashed transition-opacity opacity-60 hover:opacity-100 ${tag.color}`}
+                                  >
+                                    + {tag.name}
+                                  </button>
+                                ))}
+                            </div>
                           </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
 
-              {/* Actions Footer */}
-              <div className="px-8 py-6 border-t border-slate-200/50 dark:border-slate-700/50 flex gap-3 bg-background/50">
-                <Button
-                  variant="outline"
-                  className="text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
-                >
-                  <Send className="w-4 h-4 mr-2" />
-                  Répondre
-                </Button>
-                <Button
-                  variant="outline"
-                  className="text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
-                >
-                  <Archive className="w-4 h-4 mr-2" />
-                  Archiver
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => handleDeleteEmail(selectedEmail.id)}
-                  className="text-red-600 dark:text-red-400 border-red-200 dark:border-red-900 hover:bg-red-50 dark:hover:bg-red-900/20"
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Supprimer
-                </Button>
+                {/* Reply Section */}
+                <div className="border-t border-gray-200 dark:border-slate-800 p-3 bg-gray-50 dark:bg-slate-900/50">
+                  <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs h-8">
+                    <Send className="w-3 h-3 mr-1.5" />
+                    Répondre
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <div className="flex-1 flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+                <Mail className="w-12 h-12 mb-3 opacity-20" />
+                <p className="text-sm">Sélectionnez un e-mail</p>
               </div>
-            </div>
-          ) : (
-            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
-              <div className="p-4 bg-slate-100 dark:bg-slate-800 rounded-xl mb-4">
-                <Mail className="w-8 h-8 text-slate-400" />
-              </div>
-              <p className="text-slate-600 dark:text-slate-400 font-medium text-lg">Aucun e-mail sélectionné</p>
-              <p className="text-sm text-slate-500 dark:text-slate-500 mt-2">Sélectionnez un e-mail pour lire son contenu</p>
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

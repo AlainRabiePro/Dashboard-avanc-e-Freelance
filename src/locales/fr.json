@@ -46,6 +46,7 @@
     "subcontractors": "Sous-traitants",
     "schedule": "Calendrier",
     "mail": "Courrier",
+    "prospection": "Prospection",
     "invoices": "Factures",
     "quotes": "Devis",
     "settings": "Paramètres"
@@ -126,5 +127,43 @@
     "startDate": "Date de début",
     "endDate": "Date de fin",
     "pickDate": "Choisir une date"
+  },
+  "prospects": {
+    "title": "Prospection",
+    "description": "Gérez votre pipeline commercial et vos prospects.",
+    "create": "Ajouter un prospect",
+    "edit": "Modifier le prospect",
+    "empty": "Aucun prospect trouvé.",
+    "createFirst": "Ajoutez votre premier prospect !",
+    "deleteWarning": "prospect",
+    "companyName": "Nom de l'entreprise",
+    "contactName": "Nom du contact",
+    "website": "Site web",
+    "industry": "Secteur d'activité",
+    "lastContact": "Dernier contact",
+    "followUp": "Suivi prévu",
+    "source": "Source",
+    "budget": "Budget estimé",
+    "statusNew": "Nouveau",
+    "statusContacted": "Contacté",
+    "statusQualified": "Qualifié",
+    "statusInterested": "Intéressé",
+    "statusProposalSent": "Proposition envoyée",
+    "statusWon": "Gagné",
+    "statusLost": "Perdu",
+    "toast": {
+      "deleted": {
+        "title": "Prospect supprimé",
+        "description": "Le prospect a été supprimé :"
+      },
+      "created": {
+        "title": "Prospect créé",
+        "description": "Un nouveau prospect a été ajouté."
+      },
+      "updated": {
+        "title": "Prospect mis à jour",
+        "description": "Le prospect a été mis à jour."
+      }
+    }
   }
 }

@@ -45,6 +45,8 @@
     "clients": "Clientes",
     "subcontractors": "Subcontratistas",
     "schedule": "Calendario",
+    "mail": "Correo",
+    "prospection": "Prospección",
     "invoices": "Facturas",
     "quotes": "Cotizaciones",
     "settings": "Configuración"
@@ -125,5 +127,43 @@
     "startDate": "Fecha de inicio",
     "endDate": "Fecha de finalización",
     "pickDate": "Elige una fecha"
+  },
+  "prospects": {
+    "title": "Prospección",
+    "description": "Administra tu pipeline de ventas y prospectos.",
+    "create": "Agregar Prospecto",
+    "edit": "Editar Prospecto",
+    "empty": "No se encontraron prospectos.",
+    "createFirst": "¡Agrega tu primer prospecto!",
+    "deleteWarning": "prospecto",
+    "companyName": "Nombre de la empresa",
+    "contactName": "Nombre del contacto",
+    "website": "Sitio web",
+    "industry": "Industria",
+    "lastContact": "Último contacto",
+    "followUp": "Seguimiento",
+    "source": "Fuente",
+    "budget": "Presupuesto estimado",
+    "statusNew": "Nuevo",
+    "statusContacted": "Contactado",
+    "statusQualified": "Calificado",
+    "statusInterested": "Interesado",
+    "statusProposalSent": "Propuesta enviada",
+    "statusWon": "Ganado",
+    "statusLost": "Perdido",
+    "toast": {
+      "deleted": {
+        "title": "Prospecto eliminado",
+        "description": "El prospecto ha sido eliminado:"
+      },
+      "created": {
+        "title": "Prospecto creado",
+        "description": "Se ha agregado un nuevo prospecto."
+      },
+      "updated": {
+        "title": "Prospecto actualizado",
+        "description": "El prospecto ha sido actualizado."
+      }
+    }
   }
 }

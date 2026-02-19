@@ -1,5 +1,5 @@
 'use client';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useDoc, useFirebase, useMemoFirebase, deleteDocumentNonBlocking } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import type { Quote } from '@/lib/types';
@@ -12,11 +12,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 
 function getStatusVariant(status: Quote['status']) {
   switch (status) {
@@ -31,6 +30,7 @@ function getStatusVariant(status: Quote['status']) {
 export default function QuoteDetailsPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const id = params.id as string;
   const { firestore } = useFirebase();
@@ -39,10 +39,10 @@ export default function QuoteDetailsPage() {
 
   const quoteDocRef = useMemoFirebase(() => firestore && id ? doc(firestore, 'quotes', id) : null, [firestore, id]);
   const { data: quote, isLoading } = useDoc<Quote>(quoteDocRef);
+  const downloadTriggeredRef = useRef(false);
 
   const handleDownloadPdf = async () => {
-    const element = quoteRef.current;
-    if (!element || !quote) return;
+    if (!quote) return;
 
     toast({
       title: 'Generating PDF...',
@@ -50,20 +50,102 @@ export default function QuoteDetailsPage() {
     });
 
     try {
-        const canvas = await html2canvas(element, { scale: 2 });
-        const imgData = canvas.toDataURL('image/png');
-      
-        const pdf = new jsPDF('p', 'mm', 'a4');
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = pdf.internal.pageSize.getHeight();
-        const imgWidth = canvas.width;
-        const imgHeight = canvas.height;
-        const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-        
-        const imgX = (pdfWidth - imgWidth * ratio) / 2;
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      let yPosition = 20;
 
-        pdf.addImage(imgData, 'PNG', imgX, 10, imgWidth * ratio, imgHeight * ratio);
-        pdf.save(`Quote-${quote.quoteNumber}.pdf`);
+      // Helper functions
+      const addText = (text: string, x: number, y: number, options: any = {}) => {
+        pdf.setFontSize(options.fontSize || 11);
+        pdf.setFont('helvetica', options.bold ? 'bold' : 'normal');
+        pdf.text(text, x, y, { align: options.align || 'left' });
+        return y;
+      };
+
+      // Title
+      pdf.setFontSize(28);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Quote', 20, yPosition);
+      yPosition += 15;
+
+      // Quote Details Grid
+      const labelFontSize = 9;
+      const valueFontSize = 11;
+      
+      // Left column
+      addText('Quote Number', 20, yPosition, { fontSize: labelFontSize });
+      addText(quote.quoteNumber, 20, yPosition + 5, { fontSize: valueFontSize, bold: true });
+      addText('Quoted To', 20, yPosition + 12, { fontSize: labelFontSize });
+      addText(quote.client, 20, yPosition + 17, { fontSize: valueFontSize });
+
+      // Right column
+      const rightX = 110;
+      addText('Issue Date', rightX, yPosition, { fontSize: labelFontSize });
+      addText(formatDate(quote.issueDate), rightX, yPosition + 5, { fontSize: valueFontSize, bold: true });
+      addText('Valid Until', rightX, yPosition + 12, { fontSize: labelFontSize });
+      addText(formatDate(quote.validUntil), rightX, yPosition + 17, { fontSize: valueFontSize, bold: true });
+
+      yPosition += 25;
+
+      // Status
+      addText('Status', 20, yPosition, { fontSize: labelFontSize });
+      addText(quote.status, 20, yPosition + 5, { fontSize: valueFontSize, bold: true });
+      yPosition += 12;
+
+      // Table Header
+      pdf.setDrawColor(0, 0, 0);
+      pdf.line(20, yPosition, pageWidth - 20, yPosition);
+      yPosition += 2;
+
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(10);
+      pdf.text('Description', 20, yPosition);
+      pdf.text('Quantity', 120, yPosition, { align: 'right' });
+      pdf.text('Unit Price', 150, yPosition, { align: 'right' });
+      pdf.text('Total', pageWidth - 20, yPosition, { align: 'right' });
+
+      yPosition += 5;
+      pdf.line(20, yPosition, pageWidth - 20, yPosition);
+      yPosition += 4;
+
+      // Table Rows
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(10);
+      quote.items.forEach((item) => {
+        pdf.text(item.description, 20, yPosition);
+        pdf.text(String(item.quantity), 120, yPosition, { align: 'right' });
+        pdf.text(`$${Number(item.unitPrice).toFixed(2)}`, 150, yPosition, { align: 'right' });
+        pdf.text(`$${(Number(item.quantity) * Number(item.unitPrice)).toFixed(2)}`, pageWidth - 20, yPosition, { align: 'right' });
+        yPosition += 6;
+      });
+
+      pdf.line(20, yPosition, pageWidth - 20, yPosition);
+      yPosition += 8;
+
+      // Totals
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(10);
+      pdf.text('Subtotal', 130, yPosition, { align: 'right' });
+      pdf.text(`$${quote.amount.toFixed(2)}`, pageWidth - 20, yPosition, { align: 'right' });
+
+      yPosition += 7;
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(12);
+      pdf.text('Total', 130, yPosition, { align: 'right' });
+      pdf.text(`$${quote.amount.toFixed(2)}`, pageWidth - 20, yPosition, { align: 'right' });
+
+      // Footer
+      yPosition = pageHeight - 20;
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(9);
+      pdf.setTextColor(100, 100, 100);
+      pdf.text('Thank you for your interest!', pageWidth / 2, yPosition, { align: 'center' });
+
+      pdf.save(`Quote-${quote.quoteNumber}.pdf`);
+      
+      // Clean up the URL after download
+      window.history.replaceState({}, '', `/dashboard/quotes/${id}`);
     } catch (error) {
       console.error('PDF Export Error:', error);
       toast({
@@ -73,6 +155,16 @@ export default function QuoteDetailsPage() {
       });
     }
   };
+
+  useEffect(() => {
+    if (searchParams.get('download') === 'true' && quote && quoteRef.current && !downloadTriggeredRef.current) {
+      downloadTriggeredRef.current = true;
+      const timer = setTimeout(() => {
+        handleDownloadPdf();
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [quote, searchParams, id]);
 
   const handleDelete = () => {
     if (!quote || !firestore) return;
@@ -164,8 +256,8 @@ export default function QuoteDetailsPage() {
                 <TableRow key={index}>
                   <TableCell>{item.description}</TableCell>
                   <TableCell className="text-right">{item.quantity}</TableCell>
-                  <TableCell className="text-right">${item.unitPrice.toFixed(2)}</TableCell>
-                  <TableCell className="text-right">${(item.quantity * item.unitPrice).toFixed(2)}</TableCell>
+                  <TableCell className="text-right">${Number(item.unitPrice).toFixed(2)}</TableCell>
+                  <TableCell className="text-right">${(Number(item.quantity) * Number(item.unitPrice)).toFixed(2)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

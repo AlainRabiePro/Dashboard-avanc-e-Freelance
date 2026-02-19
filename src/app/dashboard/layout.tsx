@@ -33,7 +33,7 @@ export default function DashboardLayout({ children }: PropsWithChildren) {
       </Sidebar>
       <SidebarInset>
         <DashboardHeader />
-        <main className="p-4 lg:p-6">{children}</main>
+        <main className="p-4 lg:p-6 flex-1">{children}</main>
       </SidebarInset>
     </SidebarProvider>
   );

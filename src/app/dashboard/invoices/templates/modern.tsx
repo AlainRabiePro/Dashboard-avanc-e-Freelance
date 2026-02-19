@@ -67,8 +67,8 @@ export function ModernInvoiceTemplate({ invoice }: { invoice: Invoice }) {
                 <tr key={idx} className="hover:bg-indigo-100 transition-colors">
                   <td className="px-6 py-4 text-gray-800">{item.description}</td>
                   <td className="px-6 py-4 text-center text-gray-700">{item.quantity}</td>
-                  <td className="px-6 py-4 text-right text-gray-700 font-mono">{item.unitPrice.toFixed(2)} €</td>
-                  <td className="px-6 py-4 text-right text-gray-900 font-semibold font-mono">{item.total.toFixed(2)} €</td>
+                  <td className="px-6 py-4 text-right text-gray-700 font-mono">{Number(item.unitPrice).toFixed(2)} €</td>
+                  <td className="px-6 py-4 text-right text-gray-900 font-semibold font-mono">{Number(item.total).toFixed(2)} €</td>
                 </tr>
               ))}
             </tbody>

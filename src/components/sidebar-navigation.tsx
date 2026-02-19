@@ -39,6 +39,7 @@ export function SidebarNavigation() {
     { href: "/dashboard/subcontractors", label: t("sidebar.subcontractors"), icon: UserCog },
     { href: "/dashboard/schedule", label: t("sidebar.schedule"), icon: Calendar },
     { href: "/dashboard/mail", label: t("sidebar.mail"), icon: Mail },
+    { href: "/dashboard/prospection", label: t("sidebar.prospection"), icon: Briefcase },
   ];
 
   const financialItems = [

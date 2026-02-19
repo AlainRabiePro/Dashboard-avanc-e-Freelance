@@ -21,8 +21,8 @@ export function MinimalInvoiceTemplate({ invoice }: { invoice: Invoice }) {
             <tr key={idx}>
               <td className="py-1">{item.description}</td>
               <td className="py-1 text-right">{item.quantity}</td>
-              <td className="py-1 text-right">{item.unitPrice.toFixed(2)}</td>
-              <td className="py-1 text-right">{item.total.toFixed(2)}</td>
+              <td className="py-1 text-right">{Number(item.unitPrice).toFixed(2)}</td>
+              <td className="py-1 text-right">{Number(item.total).toFixed(2)}</td>
             </tr>
           ))}
         </tbody>

@@ -213,7 +213,40 @@ service cloud.firestore {
      * @deny  (update) A signed-in user trying to update a quote they do not own.
      * @principle Enforces document ownership for writes via a `userId` field.
      */
+
+    /**
+     * @description Manages prospects. Only the user who created a prospect can read,
+     *   update, or delete it.
+     * @path /prospects/{prospectId}
+     * @allow (get) An authenticated user reading a prospect they created.
+     * @deny  (update) A signed-in user trying to update a prospect they do not own.
+     * @principle Enforces document ownership for writes via a `userId` field.
+     */
+    match /prospects/{prospectId} {
+      allow get: if isResourceOwner();
+      allow list: if isSignedIn();
+      allow create: if isCreatingOwnResource();
+      allow update: if isExistingResourceOwner() && isUserIdImmutable();
+      allow delete: if isExistingResourceOwner();
+    }
+
     match /quotes/{quoteId} {
+      allow get: if isResourceOwner();
+      allow list: if isSignedIn();
+      allow create: if isCreatingOwnResource();
+      allow update: if isExistingResourceOwner() && isUserIdImmutable();
+      allow delete: if isExistingResourceOwner();
+    }
+
+    /**
+     * @description Manages newsletter campaigns. Only the user who created a campaign
+     *   can read, update, or delete it.
+     * @path /newsletterCampaigns/{campaignId}
+     * @allow (get) An authenticated user reading a campaign they created.
+     * @deny  (update) A signed-in user trying to update a campaign they do not own.
+     * @principle Enforces document ownership for writes via a `userId` field.
+     */
+    match /newsletterCampaigns/{campaignId} {
       allow get: if isResourceOwner();
       allow list: if isSignedIn();
       allow create: if isCreatingOwnResource();

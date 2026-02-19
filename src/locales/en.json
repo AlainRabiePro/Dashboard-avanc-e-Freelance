@@ -46,6 +46,7 @@
     "subcontractors": "Subcontractors",
     "schedule": "Schedule",
     "mail": "Mail",
+    "prospection": "Prospection",
     "invoices": "Invoices",
     "quotes": "Quotes",
     "settings": "Settings"
@@ -126,5 +127,43 @@
     "startDate": "Start Date",
     "endDate": "End Date",
     "pickDate": "Pick a date"
+  },
+  "prospects": {
+    "title": "Prospection",
+    "description": "Manage your sales pipeline and prospects.",
+    "create": "Add Prospect",
+    "edit": "Edit Prospect",
+    "empty": "No prospects found.",
+    "createFirst": "Add your first prospect!",
+    "deleteWarning": "prospect",
+    "companyName": "Company Name",
+    "contactName": "Contact Name",
+    "website": "Website",
+    "industry": "Industry",
+    "lastContact": "Last Contact",
+    "followUp": "Follow-up",
+    "source": "Source",
+    "budget": "Estimated Budget",
+    "statusNew": "New",
+    "statusContacted": "Contacted",
+    "statusQualified": "Qualified",
+    "statusInterested": "Interested",
+    "statusProposalSent": "Proposal Sent",
+    "statusWon": "Won",
+    "statusLost": "Lost",
+    "toast": {
+      "deleted": {
+        "title": "Prospect Deleted",
+        "description": "The prospect has been deleted:"
+      },
+      "created": {
+        "title": "Prospect Created",
+        "description": "A new prospect has been added."
+      },
+      "updated": {
+        "title": "Prospect Updated",
+        "description": "The prospect has been updated."
+      }
+    }
   }
 }

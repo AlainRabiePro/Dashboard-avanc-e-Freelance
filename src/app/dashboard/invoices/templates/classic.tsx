@@ -24,8 +24,8 @@ export function ClassicInvoiceTemplate({ invoice }: { invoice: Invoice }) {
             <tr key={idx}>
               <td className="p-2 border">{item.description}</td>
               <td className="p-2 border text-center">{item.quantity}</td>
-              <td className="p-2 border text-right">{item.unitPrice.toFixed(2)}</td>
-              <td className="p-2 border text-right">{item.total.toFixed(2)}</td>
+              <td className="p-2 border text-right">{Number(item.unitPrice).toFixed(2)}</td>
+              <td className="p-2 border text-right">{Number(item.total).toFixed(2)}</td>
             </tr>
           ))}
         </tbody>

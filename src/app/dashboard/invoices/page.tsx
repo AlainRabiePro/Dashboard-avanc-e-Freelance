@@ -17,7 +17,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { MoreHorizontal, PlusCircle, Trash2 } from "lucide-react";
+import { MoreHorizontal, PlusCircle, Trash2, Download } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import {
@@ -154,6 +154,9 @@ export default function InvoicesPage() {
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
                           <DropdownMenuItem asChild><Link href={`/dashboard/invoices/${invoice.id}`}>View Details</Link></DropdownMenuItem>
                           <DropdownMenuItem asChild><Link href={`/dashboard/invoices/${invoice.id}/edit`}>Edit</Link></DropdownMenuItem>
+                          <DropdownMenuItem asChild><Link href={`/dashboard/invoices/${invoice.id}?download=true`}>
+                            <Download className="mr-2 h-4 w-4" />Télécharger PDF
+                          </Link></DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem onClick={() => setInvoiceToDelete(invoice)} className="text-destructive focus:bg-destructive/10 focus:text-destructive">
                             <Trash2 className="mr-2 h-4 w-4" /> Delete

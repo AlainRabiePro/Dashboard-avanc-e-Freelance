@@ -124,3 +124,22 @@ export type Quote = {
   description: string;
   items: InvoiceItem[];
 };
+
+export type Prospect = {
+  id: string;
+  userId: string;
+  companyName: string;
+  contactName: string;
+  email: string;
+  phone: string;
+  website?: string;
+  industry?: string;
+  notes: string;
+  status: 'New' | 'Contacted' | 'Qualified' | 'Interested' | 'Proposal Sent' | 'Won' | 'Lost';
+  lastContactDate?: string | Date;
+  followUpDate?: string | Date;
+  source?: string;
+  budget?: number;
+  createdAt?: any;
+  updatedAt?: any;
+};
