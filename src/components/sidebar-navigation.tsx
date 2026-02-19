@@ -20,6 +20,7 @@ import {
   UserCog,
   Briefcase,
   Settings,
+  Mail,
 } from "lucide-react";
 import Link from "next/link";
 import { ThemeSidebarButton } from "@/components/theme-toggle";
@@ -37,6 +38,7 @@ export function SidebarNavigation() {
     { href: "/dashboard/clients", label: t("sidebar.clients"), icon: Users },
     { href: "/dashboard/subcontractors", label: t("sidebar.subcontractors"), icon: UserCog },
     { href: "/dashboard/schedule", label: t("sidebar.schedule"), icon: Calendar },
+    { href: "/dashboard/mail", label: t("sidebar.mail"), icon: Mail },
   ];
 
   const financialItems = [
