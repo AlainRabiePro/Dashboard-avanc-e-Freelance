@@ -5,6 +5,9 @@ import { CSS } from '@dnd-kit/utilities';
 import { cva } from 'class-variance-authority';
 import { Task } from '@/lib/types';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { useFirebase, updateDocumentNonBlocking } from '@/firebase';
+import { doc } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
 import { Folder, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -45,6 +48,7 @@ export function TaskCard({ task, isOverlay }: TaskCardProps) {
     },
   });
 
+  const { firestore } = useFirebase();
   const style = {
     transition,
     transform: CSS.Transform.toString(transform),
@@ -61,6 +65,13 @@ export function TaskCard({ task, isOverlay }: TaskCardProps) {
 
   const assignedUserInitials = task.assignedToName?.split(" ").map((n) => n[0]).join("") || <User className="h-4 w-4" />;
 
+  const canValidate = task.status !== 'Done';
+  const handleValidate = () => {
+    if (!firestore) return;
+    const ref = doc(firestore, 'tasks', task.id);
+    updateDocumentNonBlocking(ref, { status: 'Done' });
+  };
+
   return (
     <Card
       ref={setNodeRef}
@@ -74,8 +85,13 @@ export function TaskCard({ task, isOverlay }: TaskCardProps) {
       {...attributes}
       {...listeners}
     >
-      <CardHeader className="p-3 pb-2">
+      <CardHeader className="p-3 pb-2 flex flex-row items-center justify-between gap-2">
         <CardTitle className="text-sm font-medium leading-tight">{task.title}</CardTitle>
+        {canValidate && (
+          <Button size="icon" variant="success" title="Valider la tâche" onClick={handleValidate} className="ml-2">
+            ✓
+          </Button>
+        )}
       </CardHeader>
       <CardContent className="p-3 pt-0 flex flex-col gap-2">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">

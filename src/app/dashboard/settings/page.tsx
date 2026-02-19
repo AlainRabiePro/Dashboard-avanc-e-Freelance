@@ -31,6 +31,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useLanguage, availableLanguages, Language } from '@/context/language-context';
 
+
 export default function SettingsPage() {
   const { user, firestore } = useFirebase();
   const { toast } = useToast();
@@ -59,6 +60,9 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6">
+      <div className="flex justify-end w-full mb-2">
+        <ThemeToggle />
+      </div>
       <div>
         <h3 className="text-lg font-medium">{t('settings.title')}</h3>
         <p className="text-sm text-muted-foreground">

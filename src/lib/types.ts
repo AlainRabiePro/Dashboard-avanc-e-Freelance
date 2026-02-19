@@ -24,6 +24,7 @@ export type Project = {
   budget: number;
   startDate: string | Date;
   endDate: string | Date;
+  subcontractorIds?: string[];
   createdAt?: any;
   updatedAt?: any;
 };
@@ -106,6 +107,7 @@ export type Invoice = {
   dueDate: string | Date;
   description?: string;
   items: InvoiceItem[];
+  template?: string;
   createdAt?: any;
   updatedAt?: any;
 };

@@ -22,6 +22,7 @@ import {
   Settings,
 } from "lucide-react";
 import Link from "next/link";
+import { ThemeSidebarButton } from "@/components/theme-toggle";
 import { usePathname } from "next/navigation";
 import { useLanguage } from "@/context/language-context";
 
@@ -63,10 +64,11 @@ export function SidebarNavigation() {
                 asChild
                 isActive={isActive(item.href)}
                 tooltip={item.label}
+                className="group rounded-xl px-3 py-2 transition-colors duration-200 hover:bg-slate-200/80 dark:hover:bg-slate-800/80 focus:bg-sky-100/60 dark:focus:bg-sky-900/60 focus:outline-none"
               >
-                <Link href={item.href}>
-                  <item.icon />
-                  <span>{item.label}</span>
+                <Link href={item.href} className="flex items-center gap-3">
+                  <item.icon className="w-5 h-5 text-sky-600 dark:text-sky-400 group-hover:text-sky-700 dark:group-hover:text-sky-300 transition-colors duration-200" />
+                  <span className="font-medium text-base text-slate-800 dark:text-slate-200 group-hover:text-slate-800 dark:group-hover:text-white transition-colors duration-200">{item.label}</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -78,10 +80,11 @@ export function SidebarNavigation() {
                 asChild
                 isActive={isActive(item.href)}
                 tooltip={item.label}
+                className="group rounded-xl px-3 py-2 transition-colors duration-200 hover:bg-slate-800/80 focus:bg-sky-900/60 focus:outline-none"
               >
-                <Link href={item.href}>
-                  <item.icon />
-                  <span>{item.label}</span>
+                <Link href={item.href} className="flex items-center gap-3">
+                  <item.icon className="w-5 h-5 text-sky-400 group-hover:text-sky-300 transition-colors duration-200" />
+                  <span className="font-medium text-base group-hover:text-white transition-colors duration-200">{item.label}</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -89,20 +92,28 @@ export function SidebarNavigation() {
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              isActive={isActive("/dashboard/settings")}
-              tooltip={t("sidebar.settings")}
-            >
-              <Link href="/dashboard/settings">
-                <Settings />
-                <span>{t("sidebar.settings")}</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+        <div className="flex flex-col gap-2 w-full">
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip={t("sidebar.theme") || "Thème"}>
+                <ThemeSidebarButton />
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={isActive("/dashboard/settings")}
+                tooltip={t("sidebar.settings")}
+                className="group rounded-xl px-3 py-2 transition-colors duration-200 hover:bg-slate-800/80 focus:bg-sky-900/60 focus:outline-none"
+              >
+                <Link href="/dashboard/settings" className="flex items-center gap-3">
+                  <Settings className="w-5 h-5 text-sky-600 dark:text-sky-400 group-hover:text-sky-700 dark:group-hover:text-sky-300 transition-colors duration-200" />
+                  <span className="font-medium text-base text-slate-800 dark:text-slate-200 group-hover:text-slate-800 dark:group-hover:text-white transition-colors duration-200">{t("sidebar.settings")}</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </div>
       </SidebarFooter>
     </>
   );

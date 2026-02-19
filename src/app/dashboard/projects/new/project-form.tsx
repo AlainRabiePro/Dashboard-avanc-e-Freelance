@@ -28,6 +28,8 @@ import { useRouter } from "next/navigation";
 import { useFirebase, addDocumentNonBlocking, updateDocumentNonBlocking, useCollection, useMemoFirebase } from "@/firebase";
 import { collection, doc, serverTimestamp, query, where } from "firebase/firestore";
 import type { Project, Client } from "@/lib/types";
+import type { Subcontractor } from "@/lib/types";
+import { useLanguage } from "@/context/language-context";
 
 const projectFormSchema = z.object({
   name: z.string().min(1, "Project name is required."),
@@ -38,6 +40,7 @@ const projectFormSchema = z.object({
   progress: z.number().min(0).max(100),
   startDate: z.date({ required_error: "Start date is required." }),
   endDate: z.date({ required_error: "End date is required." }),
+  subcontractorIds: z.array(z.string()).optional(),
 });
 
 type ProjectFormValues = z.infer<typeof projectFormSchema>;
@@ -47,6 +50,7 @@ export function ProjectForm({ project }: { project?: Project }) {
   const router = useRouter();
   const { firestore, user } = useFirebase();
   const isEditMode = !!project;
+  const { t } = useLanguage();
   
   const toDate = (date: any): Date => {
     if (!date) return new Date();
@@ -59,6 +63,11 @@ export function ProjectForm({ project }: { project?: Project }) {
     [user?.uid, firestore]
   );
   const { data: clients } = useCollection<Client>(clientsQuery);
+  const subcontractorsQuery = useMemoFirebase(
+    () => user?.uid && firestore ? query(collection(firestore, "subcontractors"), where("userId", "==", user.uid)) : null,
+    [user?.uid, firestore]
+  );
+  const { data: subcontractors } = useCollection<Subcontractor>(subcontractorsQuery);
 
   const form = useForm<ProjectFormValues>({
     resolver: zodResolver(projectFormSchema),
@@ -66,6 +75,7 @@ export function ProjectForm({ project }: { project?: Project }) {
         ...project,
         startDate: toDate(project.startDate),
         endDate: toDate(project.endDate),
+        subcontractorIds: project?.subcontractorIds || [],
     } : {
       name: "",
       client: "",
@@ -73,6 +83,7 @@ export function ProjectForm({ project }: { project?: Project }) {
       status: 'Planning',
       budget: 0,
       progress: 0,
+      subcontractorIds: [],
     },
   });
 
@@ -113,9 +124,9 @@ export function ProjectForm({ project }: { project?: Project }) {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Project Name</FormLabel>
+              <FormLabel>{t('projectForm.name')}</FormLabel>
               <FormControl>
-                <Input placeholder="e.g. New Marketing Website" {...field} />
+                <Input placeholder={t('projectForm.namePlaceholder')} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -127,11 +138,11 @@ export function ProjectForm({ project }: { project?: Project }) {
             name="client"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Client</FormLabel>
+                <FormLabel>{t('projectForm.client')}</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select a client" />
+                      <SelectValue placeholder={t('projectForm.clientPlaceholder')} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -149,9 +160,18 @@ export function ProjectForm({ project }: { project?: Project }) {
             name="budget"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Budget ($)</FormLabel>
+                <FormLabel>{t('projectForm.budget')}</FormLabel>
                 <FormControl>
-                  <Input type="number" {...field} />
+                  <Input 
+                    type="number" 
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    {...field}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[^0-9.]/g, '');
+                      field.onChange(value);
+                    }}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -163,9 +183,9 @@ export function ProjectForm({ project }: { project?: Project }) {
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Description</FormLabel>
+              <FormLabel>{t('projectForm.description')}</FormLabel>
               <FormControl>
-                <Textarea placeholder="Provide a brief description of the project" {...field} />
+                <Textarea placeholder={t('projectForm.descriptionPlaceholder')} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -177,18 +197,18 @@ export function ProjectForm({ project }: { project?: Project }) {
             name="startDate"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel>Start Date</FormLabel>
+                <FormLabel>{t('projectForm.startDate')}</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button variant={"outline"} className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
-                        {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                        {field.value ? format(field.value, "PPP") : <span>{t('projectForm.pickDate')}</span>}
                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                    <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus className="[--cell-size:6.5rem] p-8 text-xl" />
                   </PopoverContent>
                 </Popover>
                 <FormMessage />
@@ -200,18 +220,18 @@ export function ProjectForm({ project }: { project?: Project }) {
             name="endDate"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel>End Date</FormLabel>
+                <FormLabel>{t('projectForm.endDate')}</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button variant={"outline"} className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
-                        {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                        {field.value ? format(field.value, "PPP") : <span>{t('projectForm.pickDate')}</span>}
                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                    <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus className="[--cell-size:6.5rem] p-8 text-xl" />
                   </PopoverContent>
                 </Popover>
                 <FormMessage />
@@ -287,6 +307,55 @@ export function ProjectForm({ project }: { project?: Project }) {
               )}
           />
         )}
+        <div className="grid md:grid-cols-2 gap-8">
+          <FormField
+            control={form.control}
+            name="subcontractorIds"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Subcontractors <span className="text-xs text-muted-foreground">(optional)</span></FormLabel>
+                <FormControl>
+                  <div className="space-y-2">
+                    {subcontractors?.map(sub => {
+                      const valueArray = Array.isArray(field.value) ? field.value : [];
+                      return (
+                        <label key={sub.id} className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            value={sub.id}
+                            checked={valueArray.includes(sub.id)}
+                            onChange={e => {
+                              if (e.target.checked) {
+                                field.onChange([...valueArray, sub.id]);
+                              } else {
+                                field.onChange(valueArray.filter((id: string) => id !== sub.id));
+                              }
+                            }}
+                            className="accent-primary"
+                          />
+                          <span>{sub.name} <span className="text-xs text-muted-foreground">({sub.specialty})</span></span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          {/* Option calendrier : afficher projets ou sous-traitants dans le calendrier */}
+          <div className="flex flex-col gap-2 mt-4">
+            <span className="font-medium">Options calendrier</span>
+            <label className="flex items-center gap-2">
+              <input type="checkbox" name="showProjectsInCalendar" />
+              <span>Afficher les projets dans le calendrier</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input type="checkbox" name="showSubcontractorsInCalendar" />
+              <span>Afficher les sous-traitants dans le calendrier</span>
+            </label>
+          </div>
+        </div>
         <div className="flex justify-end">
           <Button type="submit" disabled={form.formState.isSubmitting}>{isEditMode ? "Update Project" : "Create Project"}</Button>
         </div>

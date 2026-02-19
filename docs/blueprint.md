@@ -1,5 +1,13 @@
 # **App Name**: FreelanceForge
 
+## Schéma de parcours utilisateur idéal
+
+| Type d’utilisateur         | Parcours recommandé                                                                 |
+|---------------------------|-----------------------------------------------------------------------------------|
+| Nouveau visiteur          | Page de présentation → Register → Dashboard                                         |
+| Freelance déjà inscrit    | Page de présentation → Login → Dashboard (ou auto‑connexion si possible)            |
+| Client potentiel          | Page de présentation → CTA “Découvrir” / “Essai gratuit” → Register                 |
+
 ## Core Features:
 
 - Authentication et Profil: Permettre aux freelances de s'inscrire, de se connecter et de gérer leur profil utilisateur, incluant la mise à jour des informations personnelles et de leur rôle. Stockage et récupération des données 'users' depuis Firestore.

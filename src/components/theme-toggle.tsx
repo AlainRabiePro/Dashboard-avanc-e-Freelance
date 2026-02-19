@@ -1,4 +1,27 @@
+
 "use client"
+import { useEffect, useState } from "react";
+
+// Bouton spécial pour la sidebar : affiche l'icône et le texte dynamique
+export function ThemeSidebarButton() {
+  const { theme, setTheme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+  const isDark = (resolvedTheme || theme) === "dark";
+  return (
+    <button
+      type="button"
+      className="w-full flex items-center gap-2 px-4 h-10 rounded-lg text-left font-medium text-foreground hover:bg-muted transition"
+      style={{minHeight: 40, paddingTop: 0, paddingBottom: 0}}
+      onClick={() => setTheme(isDark ? "light" : "dark")}
+    >
+      {mounted && (
+        isDark ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />
+      )}
+      <span>{mounted ? (isDark ? "Mode sombre" : "Mode clair") : "Thème"}</span>
+    </button>
+  );
+}
 
 import * as React from "react"
 import { Moon, Sun } from "lucide-react"

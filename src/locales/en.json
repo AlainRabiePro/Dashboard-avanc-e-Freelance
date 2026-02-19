@@ -1,5 +1,11 @@
-
 {
+  "invoiceForm": {
+    "template": "Template",
+    "templatePlaceholder": "Select a template",
+    "templateClassic": "Classic",
+    "templateModern": "Modern",
+    "templateMinimal": "Minimal"
+  },
   "settings": {
     "title": "Settings",
     "description": "Manage your account settings, preferences, and translations.",
@@ -107,5 +113,17 @@
         "description": "Client has been deleted:"
       }
     }
+  },
+  "projectForm": {
+    "name": "Project Name",
+    "namePlaceholder": "e.g. New Marketing Website",
+    "client": "Client",
+    "clientPlaceholder": "Select a client",
+    "budget": "Budget ($)",
+    "description": "Description",
+    "descriptionPlaceholder": "Provide a brief description of the project",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "pickDate": "Pick a date"
   }
 }

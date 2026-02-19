@@ -1,6 +1,6 @@
-
 "use client";
 
+import { useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm } from "react-hook-form";
 import * as z from "zod";
@@ -21,8 +21,9 @@ import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { generateInvoiceQuoteDescription } from "@/ai/flows/generate-invoice-quote-description";
-import { useState } from "react";
+import { ClassicInvoiceTemplate } from "../templates/classic";
+import { ModernInvoiceTemplate } from "../templates/modern";
+import { MinimalInvoiceTemplate } from "../templates/minimal";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { useFirebase, addDocumentNonBlocking, updateDocumentNonBlocking, useCollection, useMemoFirebase } from "@/firebase";
@@ -35,6 +36,7 @@ const invoiceFormSchema = z.object({
   issueDate: z.date({ required_error: "Issue date is required." }),
   dueDate: z.date({ required_error: "Due date is required." }),
   status: z.enum(['Draft', 'Sent', 'Paid', 'Overdue']),
+  template: z.string().min(1, "Template is required."),
   items: z.array(
     z.object({
       description: z.string().min(1, "Description is required."),
@@ -47,6 +49,7 @@ const invoiceFormSchema = z.object({
 type InvoiceFormValues = z.infer<typeof invoiceFormSchema>;
 
 export function InvoiceForm({ invoice }: { invoice?: Invoice }) {
+  const [previewData, setPreviewData] = useState<Invoice | null>(invoice ?? null);
   const { toast } = useToast();
   const router = useRouter();
   const { firestore, user } = useFirebase();
@@ -69,10 +72,12 @@ export function InvoiceForm({ invoice }: { invoice?: Invoice }) {
         ...invoice,
         issueDate: toDate(invoice.issueDate),
         dueDate: toDate(invoice.dueDate),
+        template: invoice.template || "classic",
     } : {
       client: "",
       invoiceNumber: `INV-${new Date().getFullYear()}-`,
       status: 'Draft',
+      template: "classic",
       items: [{ description: "", quantity: 1, unitPrice: 0 }],
     },
   });
@@ -82,46 +87,12 @@ export function InvoiceForm({ invoice }: { invoice?: Invoice }) {
     name: "items",
   });
   
-  const [generatingStates, setGeneratingStates] = useState<boolean[]>(fields.map(() => false));
-  const [keywords, setKeywords] = useState<string[]>(fields.map(() => ""));
-
-  const handleGenerateDescription = async (index: number) => {
-    const keyword = keywords[index];
-    if (!keyword) {
-      toast({
-        title: "Keyword required",
-        description: "Please enter a keyword to generate a description.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setGeneratingStates(prev => { const next = [...prev]; next[index] = true; return next; });
-    try {
-      const result = await generateInvoiceQuoteDescription({ keyword });
-      form.setValue(`items.${index}.description`, result.description, { shouldValidate: true });
-    } catch (error) {
-      console.error(error);
-      toast({
-        title: "Generation Failed",
-        description: "Could not generate description from the provided keyword.",
-        variant: "destructive",
-      });
-    } finally {
-      setGeneratingStates(prev => { const next = [...prev]; next[index] = false; return next; });
-    }
-  };
-
   const handleAddItem = () => {
     append({ description: "", quantity: 1, unitPrice: 0 });
-    setGeneratingStates(prev => [...prev, false]);
-    setKeywords(prev => [...prev, ""]);
   };
 
   const handleRemoveItem = (index: number) => {
     remove(index);
-    setGeneratingStates(prev => prev.filter((_, i) => i !== index));
-    setKeywords(prev => prev.filter((_, i) => i !== index));
   };
 
 
@@ -157,11 +128,48 @@ export function InvoiceForm({ invoice }: { invoice?: Invoice }) {
     router.push('/dashboard/invoices');
   }
 
+  // Preview rendering logic
+  const selectedTemplate = form.watch("template");
+  const previewInvoice: Invoice = {
+    ...form.getValues(),
+    id: invoice?.id ?? "preview",
+    userId: invoice?.userId ?? "preview",
+    amount: form.getValues().items?.reduce((acc, item) => acc + item.quantity * item.unitPrice, 0) ?? 0,
+    items: form.getValues().items?.map(item => ({ ...item, total: item.quantity * item.unitPrice })) ?? [],
+    createdAt: invoice?.createdAt,
+    updatedAt: invoice?.updatedAt,
+  };
+
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
-          <FormField
+    <div className="space-y-8">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+            <FormField
+              control={form.control}
+              name="template"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Template</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a template" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="classic">Classic</SelectItem>
+                      <SelectItem value="modern">Modern</SelectItem>
+                      <SelectItem value="minimal">Minimal</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+            <FormField
             control={form.control}
             name="client"
             render={({ field }) => (
@@ -248,7 +256,7 @@ export function InvoiceForm({ invoice }: { invoice?: Invoice }) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Status</FormLabel>
-                 <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select a status" />
@@ -264,39 +272,27 @@ export function InvoiceForm({ invoice }: { invoice?: Invoice }) {
               </FormItem>
             )}
           />}
-        </div>
+          </div>
 
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Line Items</h3>
-          {fields.map((field, index) => (
-            <div key={field.id} className="grid grid-cols-12 gap-4 items-start border p-4 rounded-lg">
-              <div className="col-span-12 md:col-span-6 space-y-2">
-                <FormField
-                  control={form.control}
-                  name={`items.${index}.description`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description</FormLabel>
-                      <FormControl>
-                        <Textarea placeholder="Service or product description" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                 <div className="flex gap-2 items-center">
-                  <Input 
-                    placeholder="Keyword (e.g., 'web design')" 
-                    value={keywords[index] || ""}
-                    onChange={e => setKeywords(prev => { const next = [...prev]; next[index] = e.target.value; return next; })}
-                    className="h-9"
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Line Items</h3>
+            {fields.map((field, index) => (
+              <div key={field.id} className="grid grid-cols-12 gap-4 items-start border p-4 rounded-lg">
+                <div className="col-span-12 md:col-span-6 space-y-2">
+                  <FormField
+                    control={form.control}
+                    name={`items.${index}.description`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Textarea placeholder="Service or product description" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                  <Button type="button" size="sm" variant="outline" onClick={() => handleGenerateDescription(index)} disabled={generatingStates[index]}>
-                    {generatingStates[index] ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4 text-accent" />}
-                    <span className="ml-2 hidden sm:inline">Generate</span>
-                  </Button>
                 </div>
-              </div>
 
               <FormField
                 control={form.control}
@@ -351,5 +347,14 @@ export function InvoiceForm({ invoice }: { invoice?: Invoice }) {
         </div>
       </form>
     </Form>
+      <div className="w-full">
+        <h3 className="text-lg font-semibold mb-4">Aperçu</h3>
+        <div className="border rounded-lg overflow-hidden shadow-lg flex justify-center">
+          {selectedTemplate === "classic" && <ClassicInvoiceTemplate invoice={previewInvoice} />}
+          {selectedTemplate === "modern" && <ModernInvoiceTemplate invoice={previewInvoice} />}
+          {selectedTemplate === "minimal" && <MinimalInvoiceTemplate invoice={previewInvoice} />}
+        </div>
+      </div>
+    </div>
   );
 }

@@ -21,7 +21,6 @@ import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { generateInvoiceQuoteDescription } from "@/ai/flows/generate-invoice-quote-description";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
@@ -99,8 +98,7 @@ export function QuoteForm({ quote }: { quote?: Quote }) {
 
     setGeneratingStates(prev => { const next = [...prev]; next[index] = true; return next; });
     try {
-      const result = await generateInvoiceQuoteDescription({ keyword });
-      form.setValue(`items.${index}.description`, result.description, { shouldValidate: true });
+      // IA supprimée : génération automatique désactivée
     } catch (error) {
       console.error(error);
       toast({

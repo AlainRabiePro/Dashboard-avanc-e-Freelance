@@ -20,6 +20,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button, buttonVariants } from '@/components/ui/button';
+import { CheckCircle, CircleDashed } from 'lucide-react';
+import { useFirebase, updateDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
+import { doc } from 'firebase/firestore';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -41,9 +44,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useFirebase, deleteDocumentNonBlocking } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
-import { doc } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 
 
@@ -68,12 +69,13 @@ const priorityBadgeVariants = {
 } as const;
 
 
-export function TaskList({ tasks: initialTasks, projects, subcontractors }: TaskListProps) {
-  const [filter, setFilter] = React.useState('');
-  const [taskToDelete, setTaskToDelete] = React.useState<Task | null>(null);
-  const { firestore } = useFirebase();
-  const { toast } = useToast();
 
+export function TaskList({ tasks: initialTasks, projects, subcontractors }: TaskListProps) {
+  const { firestore } = useFirebase();
+  const [filter, setFilter] = React.useState('');
+  const [selectedStatuses, setSelectedStatuses] = React.useState<string[]>([]);
+  const [taskToDelete, setTaskToDelete] = React.useState<Task | null>(null);
+  const { toast } = useToast();
 
   const tasksWithDetails = React.useMemo(() => {
     return initialTasks.map(task => {
@@ -88,10 +90,12 @@ export function TaskList({ tasks: initialTasks, projects, subcontractors }: Task
   }, [initialTasks, projects, subcontractors]);
 
   const filteredTasks = React.useMemo(() => {
-    return tasksWithDetails.filter(task =>
-      task.title.toLowerCase().includes(filter.toLowerCase())
-    );
-  }, [tasksWithDetails, filter]);
+    return tasksWithDetails.filter(task => {
+      const matchesTitle = task.title.toLowerCase().includes(filter.toLowerCase());
+      const matchesStatus = selectedStatuses.length === 0 || selectedStatuses.includes(task.status);
+      return matchesTitle && matchesStatus;
+    });
+  }, [tasksWithDetails, filter, selectedStatuses]);
 
   const handleDelete = () => {
     if (!taskToDelete || !firestore) return;
@@ -129,7 +133,17 @@ export function TaskList({ tasks: initialTasks, projects, subcontractors }: Task
                 <DropdownMenuLabel>Filter by status</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {['Todo', 'In Progress', 'In Review', 'Done'].map(status => (
-                  <DropdownMenuCheckboxItem key={status}>
+                  <DropdownMenuCheckboxItem
+                    key={status}
+                    checked={selectedStatuses.includes(status)}
+                    onCheckedChange={checked => {
+                      setSelectedStatuses(prev =>
+                        checked
+                          ? [...prev, status]
+                          : prev.filter(s => s !== status)
+                      );
+                    }}
+                  >
                     {status}
                   </DropdownMenuCheckboxItem>
                 ))}
@@ -155,7 +169,26 @@ export function TaskList({ tasks: initialTasks, projects, subcontractors }: Task
                 <TableRow key={task.id}>
                   <TableCell className="font-medium">{task.title}</TableCell>
                   <TableCell>
-                    <Badge variant={statusBadgeVariants[task.status] || 'outline'}>{task.status}</Badge>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="flex items-center gap-2 px-2 py-1 rounded-full border border-input bg-background hover:bg-accent transition group"
+                      style={{ minWidth: 120, justifyContent: 'flex-start' }}
+                      onClick={() => {
+                        if (!firestore) return;
+                        const ref = doc(firestore, 'tasks', task.id);
+                        updateDocumentNonBlocking(ref, { status: task.status === 'Done' ? 'In Progress' : 'Done' });
+                      }}
+                    >
+                      {task.status === 'Done' ? (
+                        <CheckCircle className="w-4 h-4 text-green-500" />
+                      ) : (
+                        <CircleDashed className="w-4 h-4 text-slate-400" />
+                      )}
+                      <span className={task.status === 'Done' ? 'text-green-500 font-semibold' : 'text-slate-500'}>
+                        {task.status === 'Done' ? 'Done' : 'In Process'}
+                      </span>
+                    </Button>
                   </TableCell>
                   <TableCell>
                     <Badge variant={priorityBadgeVariants[task.priority] || 'default'}>
