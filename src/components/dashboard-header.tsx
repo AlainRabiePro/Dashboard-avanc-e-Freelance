@@ -19,7 +19,11 @@ import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { useLanguage } from "@/context/language-context";
 
-export function DashboardHeader() {
+interface DashboardHeaderProps {
+  showMailTitle?: boolean;
+}
+
+export function DashboardHeader({ showMailTitle }: DashboardHeaderProps) {
   const { user, auth } = useFirebase();
   const router = useRouter();
   const { toast } = useToast();
@@ -56,7 +60,11 @@ export function DashboardHeader() {
       <div className="flex items-center gap-2 md:hidden">
         <SidebarTrigger />
       </div>
-      <div className="w-full flex-1" />
+      <div className="flex-1 flex justify-center">
+        {showMailTitle && (
+          <span className="text-xl font-semibold text-white">Courriel</span>
+        )}
+      </div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button className="rounded-full focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">

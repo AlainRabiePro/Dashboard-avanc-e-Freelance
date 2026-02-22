@@ -3,12 +3,14 @@
 import type { PropsWithChildren } from 'react';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import { DashboardHeader } from '@/components/dashboard-header';
+import { usePathname } from 'next/navigation';
 import { SidebarNavigation } from '@/components/sidebar-navigation';
 import { useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
 export default function DashboardLayout({ children }: PropsWithChildren) {
+  const pathname = usePathname();
   const { user, isUserLoading } = useUser();
   const router = useRouter();
 
@@ -32,9 +34,9 @@ export default function DashboardLayout({ children }: PropsWithChildren) {
         <SidebarNavigation />
       </Sidebar>
       <SidebarInset>
-        <DashboardHeader />
-        <main className="p-4 lg:p-6 flex-1">{children}</main>
-      </SidebarInset>
+        <DashboardHeader showMailTitle={pathname === '/dashboard/mail'} />
+<main className="flex-1">{children}</main>     
+ </SidebarInset>
     </SidebarProvider>
   );
 }
