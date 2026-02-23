@@ -1,36 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Mail, Search, Send, Trash2, Archive, Star, StarOff, Tag, Plus, X } from "lucide-react";
 import { initializeFirebase } from "../../../firebase";
 import { collection, addDoc } from "firebase/firestore";
 
-// Mock emails avec tags ajoutés
-const emails = [
-  {
-    id: "1",
-    from: "AliExpress",
-    subject: "À ajouter à vos achats",
-    snippet: "Nos selections pour vous",
-    date: "05:19",
-    unread: true,
-    starred: false,
-    important: false,
-    tags: ["Shopping", "Promo"]
-  },
-  {
-    id: "2",
-    from: "AliExpress",
-    subject: "Liquidation : jusqu'à 60% de réduction",
-    snippet: "Sélectionné pour vous : Bouton rotatif nouvelles chaussures de sécurité...",
-    date: "05:19",
-    unread: false,
-    starred: true,
-    important: true,
-    tags: ["Urgent", "Shopping", "Vêtements"]
-  },
-  // Ajoutez d'autres emails...
-];
+interface Email {
+  id: string;
+  from: string;
+  subject: string;
+  snippet: string;
+  date: string;
+  unread: boolean;
+  starred: boolean;
+  important: boolean;
+  tags: string[];
+}
 
 // Composant Tag (style Apple)
 function EmailTag({ name, color }: { name: string; color?: string }) {
@@ -39,6 +24,7 @@ function EmailTag({ name, color }: { name: string; color?: string }) {
     Promo: '#4ecdc4',
     Urgent: '#ffe66d',
     Vêtements: '#95e1d3',
+    Important: '#ffaa00',
     default: '#6c757d'
   };
 
@@ -79,7 +65,6 @@ function SidebarItem({ icon, label, count, active }: { icon: React.ReactNode, la
   );
 }
 
-// Nouvelle section Tags dans la sidebar
 function TagsSection({ selectedTag, onTagSelect }: { selectedTag: string | null, onTagSelect: (tag: string | null) => void }) {
   const [newTag, setNewTag] = useState("");
   const [tags, setTags] = useState<string[]>([]);
@@ -89,12 +74,10 @@ function TagsSection({ selectedTag, onTagSelect }: { selectedTag: string | null,
     if (tag && !tags.includes(tag)) {
       setTags([...tags, tag]);
       setNewTag("");
-      // Ajout dans Firestore
       try {
         const { firestore } = initializeFirebase();
         await addDoc(collection(firestore, "tags"), { name: tag });
       } catch (e) {
-        // Optionnel : afficher une erreur
         console.error("Erreur lors de l'ajout du tag dans Firestore", e);
       }
     }
@@ -165,7 +148,6 @@ function TagsSection({ selectedTag, onTagSelect }: { selectedTag: string | null,
   );
 }
 
-// Menubar mise à jour avec tags
 function AssignmentMenubar({
   search, setSearch,
   selectedEmails,
@@ -307,10 +289,63 @@ function AssignmentMenubar({
 }
 
 export default function MailPage() {
+  const [emails, setEmails] = useState<Email[]>([]);
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<string[]>([]);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [availableTags, setAvailableTags] = useState<string[]>(["Shopping", "Promo", "Urgent", "Vêtements"]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // ✅ REMPLACE LES DONNÉES MOCK PAR UN FETCH VERS TON BACKEND
+  useEffect(() => {
+    fetchEmails();
+  }, []);
+
+  const fetchEmails = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // Remplace par ton endpoint backend (PocketBase, Supabase, etc.)
+      const response = await fetch('/api/emails', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          // Ajoute ton token d'auth si nécessaire
+          // 'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erreur: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setEmails(data.emails || data);
+      
+    } catch (err: any) {
+      console.error('Erreur fetch emails:', err);
+      setError(err.message);
+      
+      // Fallback avec mock data en cas d'erreur
+      setEmails([
+        {
+          id: "1",
+          from: "🚀 Système",
+          subject: "Configuration emails requise",
+          snippet: `Activez votre backend API pour voir les vrais emails. Erreur: ${err.message}`,
+          date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          unread: true,
+          starred: false,
+          important: false,
+          tags: ["Configuration"]
+        }
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   function toggleSelect(id: string) {
     setSelected(sel => sel.includes(id) ? sel.filter(x => x !== id) : [...sel, id]);
@@ -318,10 +353,8 @@ export default function MailPage() {
 
   const handleAddTag = (tag: string) => {
     setAvailableTags(prev => [...prev, tag]);
-    // Ici vous pourriez aussi ajouter le tag aux emails sélectionnés
   };
 
-  // Filtrage avec tags
   const filteredEmails = emails.filter(email => {
     const matchesSearch = 
       email.subject.toLowerCase().includes(search.toLowerCase()) ||
@@ -332,6 +365,22 @@ export default function MailPage() {
     
     return matchesSearch && matchesTag;
   });
+
+  if (loading) {
+    return (
+      <div style={{ 
+        display: "flex", 
+        minHeight: "100vh", 
+        background: "#09090b", 
+        alignItems: "center", 
+        justifyContent: "center",
+        color: "#888",
+        fontSize: 16
+      }}>
+        ⏳ Chargement des emails...
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "#09090b" }}>
@@ -347,23 +396,24 @@ export default function MailPage() {
           <button style={{
             width: "100%", background: "#23232B", color: "#fff", border: "none",
             borderRadius: 6, padding: 9, fontWeight: 600, textAlign: "left"
-          }}>▲ Alicia Koch</button>
+          }}>
+            ▲ Alicia Koch
+          </button>
         </div>
         
         <div style={{ padding: "8px 16px 8px 16px", borderBottom: "1px solid #23232B" }}>
-          <SidebarItem icon={<Mail style={{ width: 18, height: 18 }} />} label="Inbox" count={128} active />
+          <SidebarItem icon={<Mail style={{ width: 18, height: 18 }} />} label="Inbox" count={filteredEmails.length} active />
           <SidebarItem icon={<Send style={{ width: 18, height: 18 }} />} label="Sent" />
           <SidebarItem icon={<Trash2 style={{ width: 18, height: 18 }} />} label="Trash" />
           <SidebarItem icon={<Archive style={{ width: 18, height: 18 }} />} label="Archive" />
         </div>
 
-        {/* Nouvelle section Tags */}
         <TagsSection selectedTag={selectedTag} onTagSelect={setSelectedTag} />
 
         <div style={{ flex: 1 }} />
       </aside>
 
-      {/* Main content reste identique jusqu'à la liste des emails */}
+      {/* Main content */}
       <main style={{
         flex: 1, background: "#181818", minHeight: '100vh', overflow: 'auto',
         display: "flex", flexDirection: "column"
@@ -391,102 +441,131 @@ export default function MailPage() {
           onAddTag={handleAddTag}
         />
 
-        {/* Liste des emails avec tags affichés */}
-        <div style={{ width: "100%", flex: 1 }}>
-          {filteredEmails.map(mail => (
-            <div
-              key={mail.id}
-              style={{
-                display: "flex",
-                alignItems: "flex-start",
-                padding: "12px 24px",
-                borderBottom: "1px solid #232323",
-                background: selected.includes(mail.id) ? "#23242a" : "none",
-                cursor: "pointer",
-                transition: "background 0.12s",
+        {/* ✅ ÉTAT D'ERREUR */}
+        {error && (
+          <div style={{ padding: '20px 24px', background: '#ff4444', color: 'white', borderBottom: '1px solid #ff6666' }}>
+            ❌ Erreur: {error}
+            <button 
+              onClick={fetchEmails} 
+              style={{ 
+                marginLeft: 16, 
+                background: '#2d60e2', 
+                color: 'white', 
+                border: 'none', 
+                padding: '4px 12px', 
+                borderRadius: 4, 
+                cursor: 'pointer',
+                fontSize: 12
               }}
-              onMouseOver={e => (e.currentTarget.style.background = "#242427")}
-              onMouseOut={e => (e.currentTarget.style.background = selected.includes(mail.id) ? "#23242a" : "none")}
-              onClick={() => toggleSelect(mail.id)}
             >
-              <input
-                type="checkbox"
-                checked={selected.includes(mail.id)}
-                onChange={e => { e.stopPropagation(); toggleSelect(mail.id); }}
-                style={{ accentColor: "#666", width: 17, height: 17, marginTop: 2 }}
-                onClick={e => e.stopPropagation()}
-              />
-              
-              <span style={{ marginLeft: 12, marginRight: 6, marginTop: 2 }}>
-                {mail.starred
-                  ? <Star style={{ width: 18, height: 18, color: "#facc15", fill: "#facc15" }} />
-                  : <StarOff style={{ width: 18, height: 18, color: "#666" }} />
-                }
-              </span>
+              🔄 Réessayer
+            </button>
+          </div>
+        )}
 
-              <span style={{
-                fontWeight: mail.unread ? 700 : 500,
-                color: mail.unread ? "#fff" : "#ccc",
-                marginRight: 14,
-                minWidth: 128,
-                flex: "0 0 180px",
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis"
-              }}>{mail.from}</span>
+        {/* Liste des emails */}
+        <div style={{ width: "100%", flex: 1 }}>
+          {filteredEmails.length === 0 ? (
+            <div style={{ padding: '40px 24px', color: '#888', textAlign: 'center' }}>
+              📭 Aucun email trouvé
+              <br />
+              <small>Essayez de modifier votre recherche ou ajoutez des tags</small>
+            </div>
+          ) : (
+            filteredEmails.map(mail => (
+              <div
+                key={mail.id}
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  padding: "12px 24px",
+                  borderBottom: "1px solid #232323",
+                  background: selected.includes(mail.id) ? "#23242a" : "none",
+                  cursor: "pointer",
+                  transition: "background 0.12s",
+                }}
+                onMouseOver={e => (e.currentTarget.style.background = "#242427")}
+                onMouseOut={e => (e.currentTarget.style.background = selected.includes(mail.id) ? "#23242a" : "none")}
+                onClick={() => toggleSelect(mail.id)}
+              >
+                <input
+                  type="checkbox"
+                  checked={selected.includes(mail.id)}
+                  onChange={e => { e.stopPropagation(); toggleSelect(mail.id); }}
+                  style={{ accentColor: "#666", width: 17, height: 17, marginTop: 2 }}
+                  onClick={e => e.stopPropagation()}
+                />
+                
+                <span style={{ marginLeft: 12, marginRight: 6, marginTop: 2 }}>
+                  {mail.starred
+                    ? <Star style={{ width: 18, height: 18, color: "#facc15", fill: "#facc15" }} />
+                    : <StarOff style={{ width: 18, height: 18, color: "#666" }} />
+                  }
+                </span>
 
-              <span style={{
-                flex: "1 1 0",
-                display: "flex",
-                flexDirection: "column",
-                minWidth: 0,
-                overflow: "hidden"
-              }}>
                 <span style={{
                   fontWeight: mail.unread ? 700 : 500,
-                  color: mail.unread ? "#fff" : "#eee",
-                  marginBottom: 2,
+                  color: mail.unread ? "#fff" : "#ccc",
+                  marginRight: 14,
+                  minWidth: 128,
+                  flex: "0 0 180px",
                   whiteSpace: "nowrap",
                   overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  maxWidth: 400
-                }}>
-                  {mail.subject}
-                </span>
-                <span style={{
-                  color: "#888",
-                  fontWeight: 400,
-                  fontSize: 15,
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  maxWidth: 400
-                }}>
-                  {mail.snippet}
-                </span>
-                {/* Affichage des tags */}
-                {mail.tags.length > 0 && (
-                  <div style={{ marginTop: 4, display: "flex", flexWrap: "wrap", gap: 2 }}>
-                    {mail.tags.slice(0, 3).map(tag => (
-                      <EmailTag key={tag} name={tag} />
-                    ))}
-                    {mail.tags.length > 3 && (
-                      <span style={{ color: "#666", fontSize: 12 }}>+{mail.tags.length - 3}</span>
-                    )}
-                  </div>
-                )}
-              </span>
+                  textOverflow: "ellipsis"
+                }}>{mail.from}</span>
 
-              <span style={{
-                color: "#aaa",
-                fontWeight: mail.unread ? 700 : 400,
-                minWidth: 70,
-                marginLeft: 14,
-                textAlign: "right",
-                fontSize: 15
-              }}>{mail.date}</span>
-            </div>
-          ))}
+                <span style={{
+                  flex: "1 1 0",
+                  display: "flex",
+                  flexDirection: "column",
+                  minWidth: 0,
+                  overflow: "hidden"
+                }}>
+                  <span style={{
+                    fontWeight: mail.unread ? 700 : 500,
+                    color: mail.unread ? "#fff" : "#eee",
+                    marginBottom: 2,
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    maxWidth: 400
+                  }}>
+                    {mail.subject}
+                  </span>
+                  <span style={{
+                    color: "#888",
+                    fontWeight: 400,
+                    fontSize: 15,
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    maxWidth: 400
+                  }}>
+                    {mail.snippet}
+                  </span>
+                  {mail.tags.length > 0 && (
+                    <div style={{ marginTop: 4, display: "flex", flexWrap: "wrap", gap: 2 }}>
+                      {mail.tags.slice(0, 3).map(tag => (
+                        <EmailTag key={tag} name={tag} />
+                      ))}
+                      {mail.tags.length > 3 && (
+                        <span style={{ color: "#666", fontSize: 12 }}>+{mail.tags.length - 3}</span>
+                      )}
+                    </div>
+                  )}
+                </span>
+
+                <span style={{
+                  color: "#aaa",
+                  fontWeight: mail.unread ? 700 : 400,
+                  minWidth: 70,
+                  marginLeft: 14,
+                  textAlign: "right",
+                  fontSize: 15
+                }}>{mail.date}</span>
+              </div>
+            ))
+          )}
         </div>
       </main>
     </div>
