@@ -17,7 +17,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { MoreHorizontal, PlusCircle, Trash2 } from "lucide-react";
+import { MoreHorizontal, PlusCircle, Trash2, Phone, Mail } from "lucide-react";
 import Link from "next/link";
 import {
   DropdownMenu,
@@ -125,8 +125,32 @@ export default function ClientsPage() {
                         {client.status}
                       </Badge>
                     </TableCell>
-                    <TableCell>{client.email}</TableCell>
-                    <TableCell>{client.phone}</TableCell>
+                      <TableCell>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          asChild
+                          className="flex items-center gap-2 px-2 py-1 hover:bg-blue-50 hover:border-blue-400 transition"
+                        >
+                          <a href={`mailto:${client.email}`} className="flex items-center gap-2">
+                            <Mail className="w-4 h-4 text-blue-500" />
+                            <span className="truncate max-w-[120px]">{client.email}</span>
+                          </a>
+                        </Button>
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          asChild
+                          className="flex items-center gap-2 px-2 py-1 hover:bg-green-50 hover:border-green-400 transition"
+                        >
+                          <a href={`tel:${client.phone}`} className="flex items-center gap-2">
+                            <Phone className="w-4 h-4 text-green-500" />
+                            <span className="truncate max-w-[100px]">{client.phone}</span>
+                          </a>
+                        </Button>
+                      </TableCell>
                     <TableCell className="text-right">
                        <DropdownMenu>
                         <DropdownMenuTrigger asChild>
