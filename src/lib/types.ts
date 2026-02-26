@@ -9,6 +9,7 @@ export type User = {
   role: 'freelancer';
   emailNotifications?: boolean;
   marketingEmails?: boolean;
+  subscriptionPlan?: 'basic' | 'premium'; // basic = 10€/mois, premium = 17,99€/mois sans pub
   createdAt?: any;
   updatedAt?: any;
 };

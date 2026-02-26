@@ -304,20 +304,30 @@ export default function SettingsPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="rounded-lg border p-4 bg-muted/50">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-semibold">Current Plan</p>
-                      <p className="text-sm text-muted-foreground">Free Plan - Unlimited Duration</p>
-                    </div>
-                    <Button variant="outline">Upgrade</Button>
+                <div className="rounded-lg border p-4 bg-muted/50 flex flex-col md:flex-row items-center justify-between gap-4">
+                  <div>
+                    <p className="font-semibold">Abonnement actuel</p>
+                    <p className="text-sm text-muted-foreground">
+                      {userProfile?.subscriptionPlan === 'premium'
+                        ? 'Sans pub (14,99€/mois)'
+                        : userProfile?.subscriptionPlan === 'ads'
+                        ? 'Essentiel (9,99€/mois)'
+                        : 'Aucun (accès limité)'}
+                    </p>
                   </div>
+                  <Button
+                    variant="default"
+                    className="w-full md:w-auto"
+                    onClick={() => window.location.href = '/dashboard/settings/abonnement'}
+                  >
+                    Choisir / Modifier mon abonnement
+                  </Button>
                 </div>
-                <Button variant="outline" className="w-full gap-2 justify-start">
-                  Manage Billing
+                <Button variant="outline" className="w-full gap-2 justify-start" disabled>
+                  Gérer la facturation (bientôt)
                 </Button>
-                <Button variant="outline" className="w-full gap-2 justify-start">
-                  View Invoices
+                <Button variant="outline" className="w-full gap-2 justify-start" disabled>
+                  Voir les factures (bientôt)
                 </Button>
               </CardContent>
             </Card>

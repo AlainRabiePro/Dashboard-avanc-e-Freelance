@@ -156,6 +156,41 @@ export default function MarketingPage() {
         </div>
       </section>
 
+      {/* ABONNEMENTS */}
+      <section className="w-full py-16 bg-slate-900/80 border-y border-slate-800 flex justify-center">
+        <div className="max-w-4xl w-full flex flex-col md:flex-row gap-8 px-4">
+          {/* Offre avec pub */}
+          <div className="flex-1 rounded-2xl border border-slate-700 bg-slate-950 p-8 flex flex-col items-center shadow-lg relative">
+            <span className="absolute -top-4 left-1/2 -translate-x-1/2 bg-sky-500 text-slate-950 text-xs font-bold px-3 py-1 rounded-full shadow">Avec publicités</span>
+            <h3 className="text-xl font-bold mb-2 mt-4">Essentiel</h3>
+            <p className="text-3xl font-extrabold text-sky-400 mb-2">9,99€ / mois</p>
+            <ul className="text-base text-slate-300 mb-8 space-y-1 text-center">
+              <li>✔️ Toutes les fonctionnalités</li>
+              <li>✔️ Support prioritaire</li>
+              <li>✔️ Export PDF avancé</li>
+              <li>✔️ Automatisations</li>
+              <li>✔️ Accès aux nouveautés</li>
+              <li>❌ Sans publicités</li>
+            </ul>
+            <Link href="/paiement/ads" className="rounded-full bg-sky-500 px-8 py-3 text-base font-semibold text-slate-950 hover:bg-sky-400 transition-colors">S'abonner</Link>
+          </div>
+          {/* Offre sans pub */}
+          <div className="flex-1 rounded-2xl border-2 border-sky-500 bg-slate-950 p-8 flex flex-col items-center shadow-xl relative">
+            <span className="absolute -top-4 left-1/2 -translate-x-1/2 bg-sky-500 text-slate-950 text-xs font-bold px-3 py-1 rounded-full shadow">Sans publicités</span>
+            <h3 className="text-xl font-bold mb-2 mt-4">Premium</h3>
+            <p className="text-3xl font-extrabold text-sky-400 mb-2">14,99€ / mois</p>
+            <ul className="text-base text-slate-300 mb-8 space-y-1 text-center">
+              <li>✔️ Toutes les fonctionnalités</li>
+              <li>✔️ Support prioritaire</li>
+              <li>✔️ Export PDF avancé</li>
+              <li>✔️ Automatisations</li>
+              <li>✔️ Accès aux nouveautés</li>
+              <li>✔️ Sans publicités</li>
+            </ul>
+            <Link href="/paiement/premium" className="rounded-full bg-sky-500 px-8 py-3 text-base font-semibold text-slate-950 hover:bg-sky-400 transition-colors">S'abonner</Link>
+          </div>
+        </div>
+      </section>
       {/* FEATURES */}
       <section
         id="features"
