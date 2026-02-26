@@ -1,6 +1,9 @@
 "use client";
 // app/(marketing)/page.tsx
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { useUser } from "@/firebase";
+import { useState } from "react";
 import dynamic from "next/dynamic";
 import React from "react";
 import Image from "next/image";
@@ -8,6 +11,34 @@ const AnimatedChart = dynamic(() => import("./AnimatedChart"), { ssr: false });
 import { Calendar } from "@/components/ui/calendar";
 
 export default function MarketingPage() {
+    const { user } = useUser();
+    const [loading, setLoading] = useState(false);
+
+    // Handler Stripe Checkout
+    const handlePremiumPay = async () => {
+      if (!user?.email) {
+        window.location.href = "/register?redirect=/presentation";
+        return;
+      }
+      setLoading(true);
+      try {
+        const res = await fetch("/api/create-checkout-session", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ plan: "premium", email: user.email }),
+        });
+        const data = await res.json();
+        if (data.url) {
+          window.location.href = data.url;
+        } else {
+          alert(data.error || "Erreur lors de la création de la session Stripe.");
+        }
+      } catch (e) {
+        alert("Erreur réseau ou serveur Stripe.");
+      } finally {
+        setLoading(false);
+      }
+    };
   return (
     <main className="min-h-screen bg-slate-950 text-slate-50">
       {/* HERO */}
@@ -188,6 +219,15 @@ export default function MarketingPage() {
               <li>✔️ Sans publicités</li>
             </ul>
             <Link href="/paiement/premium" className="rounded-full bg-sky-500 px-8 py-3 text-base font-semibold text-slate-950 hover:bg-sky-400 transition-colors">S'abonner</Link>
+                      {user ? (
+                        <Button onClick={handlePremiumPay} disabled={loading} className="w-full text-base font-semibold bg-sky-500 text-slate-950 hover:bg-sky-400 px-8 py-3 rounded-full mt-2">
+                          S'abonner
+                        </Button>
+                      ) : (
+                        <Button onClick={handlePremiumPay} className="w-full text-base font-semibold bg-sky-500 text-slate-950 hover:bg-sky-400 px-8 py-3 rounded-full mt-2">
+                          S'abonner
+                        </Button>
+                      )}
           </div>
         </div>
       </section>

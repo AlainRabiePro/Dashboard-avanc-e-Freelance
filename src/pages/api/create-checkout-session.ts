@@ -3,7 +3,7 @@ import Stripe from 'stripe';
 import { NextApiRequest, NextApiResponse } from 'next';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2022-11-15',
+  apiVersion: '2026-01-28.clover',
 });
 
 const BASIC_PRICE_ID = process.env.STRIPE_BASIC_PRICE_ID!; // à définir dans .env.local
