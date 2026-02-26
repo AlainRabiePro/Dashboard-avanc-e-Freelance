@@ -11,6 +11,47 @@ export default function PaiementPremiumPage() {
   const [loading, setLoading] = useState(false);
   const [card, setCard] = useState({ name: '', number: '', expiry: '', cvc: '' });
 
+  // Gestion du numéro de carte : limite à 16 chiffres et ajoute les espaces automatiques (format 0000 0000 0000 0000)
+  const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.replace(/[^0-9]/g, '');
+    if (value.length > 16) value = value.slice(0, 16);
+    // Ajoute un espace toutes les 4 chiffres
+    let formatted = value.replace(/(.{4})/g, '$1 ').trim();
+    setCard({ ...card, number: formatted });
+  };
+
+  // Limite le CVC à 3 chiffres
+  const handleCvcChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.replace(/[^0-9]/g, '');
+    if (value.length > 3) value = value.slice(0, 3);
+    setCard({ ...card, cvc: value });
+  };
+
+  // Ajout automatique du / dans le champ expiration
+  const handleExpiryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.replace(/[^0-9]/g, '');
+    if (value.length > 4) value = value.slice(0, 4);
+    if (value.length > 2) value = value.slice(0, 2) + '/' + value.slice(2);
+    // Vérifie si la date est expirée
+    if (value.length === 5) {
+      const [month, year] = value.split('/');
+      const now = new Date();
+      const inputMonth = parseInt(month, 10);
+      const inputYear = 2000 + parseInt(year, 10);
+      const currentMonth = now.getMonth() + 1;
+      const currentYear = now.getFullYear();
+      if (
+        inputMonth < 1 ||
+        inputMonth > 12 ||
+        inputYear < currentYear ||
+        (inputYear === currentYear && inputMonth < currentMonth)
+      ) {
+        return; // Ignore la saisie si la date est invalide ou expirée
+      }
+    }
+    setCard({ ...card, expiry: value });
+  };
+
   const handlePay = async () => {
     if (!user?.email) {
       alert("Veuillez vous connecter.");
@@ -57,15 +98,34 @@ export default function PaiementPremiumPage() {
                   </div>
                   <div className="col-span-2">
                     <label className="text-xs text-slate-400">Numéro de carte *</label>
-                    <input className="w-full rounded bg-slate-800 text-slate-100 p-2 mt-1 mb-2 outline-none border border-slate-700 focus:border-sky-500" value={card.number} onChange={e => setCard({ ...card, number: e.target.value })} placeholder="1234 5678 9012 3456" />
+                    <input
+                      className="w-full rounded bg-slate-800 text-slate-100 p-2 mt-1 mb-2 outline-none border border-slate-700 focus:border-sky-500"
+                      value={card.number}
+                      onChange={handleCardNumberChange}
+                      placeholder="1234 5678 9012 3456"
+                      maxLength={19}
+                      inputMode="numeric"
+                    />
                   </div>
                   <div>
                     <label className="text-xs text-slate-400">Expiration *</label>
-                    <input className="w-full rounded bg-slate-800 text-slate-100 p-2 mt-1 mb-2 outline-none border border-slate-700 focus:border-sky-500" value={card.expiry} onChange={e => setCard({ ...card, expiry: e.target.value })} placeholder="09/27" />
+                    <input
+                      className="w-full rounded bg-slate-800 text-slate-100 p-2 mt-1 mb-2 outline-none border border-slate-700 focus:border-sky-500"
+                      value={card.expiry}
+                      onChange={handleExpiryChange}
+                      maxLength={5}
+                      placeholder="09/27"
+                    />
                   </div>
                   <div>
                     <label className="text-xs text-slate-400">CVC *</label>
-                    <input className="w-full rounded bg-slate-800 text-slate-100 p-2 mt-1 mb-2 outline-none border border-slate-700 focus:border-sky-500" value={card.cvc} onChange={e => setCard({ ...card, cvc: e.target.value })} placeholder="123" />
+                    <input
+                      className="w-full rounded bg-slate-800 text-slate-100 p-2 mt-1 mb-2 outline-none border border-slate-700 focus:border-sky-500"
+                      value={card.cvc}
+                      onChange={handleCvcChange}
+                      maxLength={3}
+                      placeholder="123"
+                    />
                   </div>
                 </div>
               </div>
