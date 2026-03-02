@@ -7,7 +7,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
-import { ArrowLeft, Edit, FileDown, Printer, Trash2 } from 'lucide-react';
+import { ArrowLeft, Edit, FileDown, Printer, Trash2, Download, FileSpreadsheet, Image } from 'lucide-react';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import * as XLSX from 'xlsx';
+import html2canvas from 'html2canvas';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
@@ -214,9 +217,49 @@ export default function QuoteDetailsPage() {
         </div>
         <div className="flex items-center gap-2">
             <Button variant="outline" onClick={() => window.print()}><Printer className="mr-2 h-4 w-4" /> Print</Button>
-            <Button variant="outline" onClick={handleDownloadPdf}><FileDown className="mr-2 h-4 w-4" /> PDF</Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline"><Download className="mr-2 h-4 w-4" /> Exporter</Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={handleDownloadPdf}><FileDown className="mr-2 h-4 w-4" /> PDF</DropdownMenuItem>
+                <DropdownMenuItem onClick={handleDownloadExcel}><FileSpreadsheet className="mr-2 h-4 w-4" /> Excel</DropdownMenuItem>
+                <DropdownMenuItem onClick={handleDownloadPng}><Image className="mr-2 h-4 w-4" /> PNG</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button asChild><Link href={`/dashboard/quotes/${quote.id}/edit`}><Edit className="mr-2 h-4 w-4" /> Edit</Link></Button>
             <Button variant="destructive" onClick={() => setShowDeleteDialog(true)}><Trash2 className="mr-2 h-4 w-4" /> Delete</Button>
+          // Export Excel
+          const handleDownloadExcel = () => {
+            if (!quote) return;
+            const items = quote.items.map(item => ({
+              Description: item.description,
+              Quantity: item.quantity,
+              'Unit Price': item.unitPrice,
+              Total: Number(item.quantity) * Number(item.unitPrice)
+            }));
+            const ws = XLSX.utils.json_to_sheet(items);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Quote');
+            XLSX.writeFile(wb, `Quote-${quote.quoteNumber}.xlsx`);
+            toast({ title: 'Export Excel', description: 'Le devis a été exporté en Excel.' });
+          };
+
+          // Export PNG
+          const handleDownloadPng = async () => {
+            if (!quoteRef.current) return;
+            toast({ title: 'Export PNG', description: 'Le devis est en cours d’export.' });
+            try {
+              const canvas = await html2canvas(quoteRef.current);
+              const link = document.createElement('a');
+              link.href = canvas.toDataURL('image/png');
+              link.download = `Quote-${quote.quoteNumber}.png`;
+              link.click();
+              toast({ title: 'Export PNG', description: 'Le devis a été exporté en PNG.' });
+            } catch (error) {
+              toast({ title: 'Erreur PNG', description: 'Erreur lors de l’export PNG.', variant: 'destructive' });
+            }
+          };
         </div>
       </div>
       <Card ref={quoteRef}>
