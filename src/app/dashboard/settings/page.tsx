@@ -80,11 +80,57 @@ export default function SettingsPage() {
     }
   };
 
-  const handleDeleteAccount = () => {
-    toast({
-      title: 'Delete Account',
-      description: 'Please contact support to delete your account.',
-    });
+  const handleDeleteAccount = async () => {
+    // Show confirmation dialog
+    const confirmed = window.confirm(
+      'Are you absolutely sure you want to delete your account? This will permanently delete all your data including:\n\n• Your profile information\n• All projects and tasks\n• All clients and invoices\n• All quotes and proposals\n• All newsletter campaigns\n\nThis action cannot be undone.'
+    );
+
+    if (!confirmed) return;
+
+    try {
+      // Get the ID token
+      const idToken = await auth.currentUser?.getIdToken();
+      if (!idToken) {
+        toast({
+          title: 'Error',
+          description: 'Unable to verify your identity. Please log in again.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Call the delete account API
+      const response = await fetch('/api/delete-account', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete account');
+      }
+
+      toast({
+        title: 'Account Deleted',
+        description: 'Your account and all associated data have been permanently deleted.',
+      });
+
+      // Redirect to login page after a short delay
+      setTimeout(() => {
+        router.push('/login');
+      }, 2000);
+    } catch (error: any) {
+      console.error('Delete account error:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to delete your account. Please try again.',
+        variant: 'destructive',
+      });
+    }
   };
 
   return (

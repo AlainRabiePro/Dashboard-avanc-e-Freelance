@@ -28,6 +28,8 @@ import { useRouter } from "next/navigation";
 import { useUser } from "@/firebase";
 import { useEffect } from "react";
 import Image from "next/image";
+import { GoogleSignInButton } from "@/components/google-signin-button";
+import { Separator } from "@/components/ui/separator";
 
 const loginFormSchema = z.object({
   email: z.string().email("Invalid email address."),
@@ -86,6 +88,8 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          <GoogleSignInButton />
+          <Separator className="my-4" />
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField

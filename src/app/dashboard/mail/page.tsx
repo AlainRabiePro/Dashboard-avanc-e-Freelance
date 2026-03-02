@@ -9,6 +9,8 @@ import {
 } from "lucide-react";
 import { initializeFirebase } from "@/firebase";
 import { collection, addDoc, query, where, getDocs } from "firebase/firestore";
+import { ComposeEmailDialog } from "@/components/compose-email-dialog";
+import { GmailLoginButton } from "@/components/gmail-login-button";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -627,6 +629,7 @@ export default function MailPage() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [assignSuccess, setAssignSuccess] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [composeOpen, setComposeOpen] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -757,6 +760,19 @@ export default function MailPage() {
     );
   };
 
+  // Extraire les contacts uniques des mails reçus pour l'autocomplete
+  const availableContacts = useMemo(() => {
+    const contactsMap = new Map<string, string>();
+    emails
+      .filter(email => email.folder !== "sent" && email.folder !== "drafts") // Seulement les mails reçus
+      .forEach(email => {
+        if (email.fromEmail && email.from) {
+          contactsMap.set(email.fromEmail, email.from);
+        }
+      });
+    return Array.from(contactsMap).map(([email, name]) => ({ email, name }));
+  }, [emails]);
+
   const bulkAssign = (projectId: string, projectName: string) => {
     if (!projectId) return;
     setEmails(prev =>
@@ -795,7 +811,9 @@ export default function MailPage() {
             <span style={{ color: "#f9fafb", fontWeight: 700, fontSize: 15 }}>Messages</span>
           </div>
 
-          <button style={{
+          <button 
+            onClick={() => setComposeOpen(true)}
+            style={{
             width: "100%", padding: "10px 16px",
             background: "linear-gradient(135deg, #2d60e2, #1e40af)",
             color: "#fff", border: "none", borderRadius: 10, fontWeight: 600,
@@ -824,6 +842,11 @@ export default function MailPage() {
               onClick={() => { setActiveFolder(f.id); setSelectedEmail(null); }}
             />
           ))}
+        </div>
+
+        {/* Gmail Login Button */}
+        <div style={{ padding: "16px 8px", borderTop: "1px solid #1a2030", marginTop: "auto" }}>
+          <GmailLoginButton />
         </div>
 
         {/* Projects with assigned emails */}
@@ -1017,6 +1040,14 @@ export default function MailPage() {
           {assignSuccess}
         </div>
       )}
+
+      {/* Compose Email Dialog */}
+      <ComposeEmailDialog 
+        open={composeOpen} 
+        onOpenChange={setComposeOpen}
+        onSuccess={handleRefresh}
+        availableEmails={availableContacts}
+      />
 
       <style>{`
         @keyframes spin {
