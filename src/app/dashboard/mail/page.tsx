@@ -771,6 +771,7 @@ export default function MailPage() {
     <div style={{
       display: "flex", height: "100vh", background: "#070a0f",
       overflow: "hidden", fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+      maxWidth: "100vw",
     }}>
 
       {/* ── Left Sidebar ───────────────────────────────────────────────── */}
@@ -853,7 +854,7 @@ export default function MailPage() {
       </aside>
 
       {/* ── Main area ──────────────────────────────────────────────────── */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, overflow: "hidden" }}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, overflow: "hidden", maxWidth: "calc(100vw - 245px)" }}>
 
         {/* Search bar */}
         <div style={{
